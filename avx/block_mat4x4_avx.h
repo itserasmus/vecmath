@@ -12,7 +12,7 @@ extern "C" {
 // add, sub, scal_mul, mul, det, adj, inv, trans, pre_vec_mul, post_vec_mul, powers
 
 
-
+/// @brief Add two 4x4 matrices.
 pure_fn mat4 add_mat4(const mat4 a, const mat4 b) {
     mat4 ret;
     ret.b0 = _mm256_add_ps(a.b0, b.b0);
@@ -20,6 +20,7 @@ pure_fn mat4 add_mat4(const mat4 a, const mat4 b) {
     return ret;
 }
 
+/// @brief Subtract two 4x4 matrices.
 pure_fn mat4 sub_mat4(const mat4 a, const mat4 b) {
     mat4 ret;
     ret.b0 = _mm256_sub_ps(a.b0, b.b0);
@@ -27,6 +28,7 @@ pure_fn mat4 sub_mat4(const mat4 a, const mat4 b) {
     return ret;
 }
 
+/// @brief Multiply a 4x4 matrix by a scalar.
 pure_fn mat4 scal_mul_mat4(const mat4 a, const float b) {
     mat4 ret;
     __m256 b_vec = _mm256_set1_ps(b);
@@ -35,6 +37,7 @@ pure_fn mat4 scal_mul_mat4(const mat4 a, const float b) {
     return ret;
 }
 
+/// @brief Transpose a 4x4 matrix.
 pure_fn mat4 trans_mat4(const mat4 a) {
     mat4 ret;
     ret.b0 = _mm256_permute_mac(a.b0, _MM_SHUFFLE(3, 1, 2, 0));
@@ -46,6 +49,7 @@ pure_fn mat4 trans_mat4(const mat4 a) {
     return ret;
 }
 
+/// @brief Compute the determinant of a 4x4 matrix.
 pure_fn float det_mat4(const mat4 a) {
     // det =
     // (a0a3 - a1a2)(c0c3 - c1c2) +
@@ -120,7 +124,7 @@ pure_fn float det_mat4(const mat4 a) {
 
 
 
-
+/// @brief Store a 4x4 block matrix as an array.
 void store_mat4(float *arr, const mat4 a) {
     _mm_store_ps(arr,
         _mm_movelh_ps(
@@ -147,6 +151,7 @@ void store_mat4(float *arr, const mat4 a) {
         )
     );
 }
+/// @brief Print a 4x4 block matrix.
 void print_mat4(const mat4 a) {
     _Alignas(16) float arr[16];
     memcpy(arr, &a, sizeof(mat4));

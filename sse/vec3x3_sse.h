@@ -11,40 +11,47 @@ extern "C" {
 
 
 
-// add, sub, mul, div, dot, normalize, length, outer
-
+/// @brief Adds two 3-vectors. 
 pure_fn vec3 add_vec3(const vec3 a, const vec3 b) {
     return _mm_add_ps(a, b);
 }
 
+/// @brief Subtracts two 3-vectors 
 pure_fn vec3 sub_vec3(const vec3 a, const vec3 b) {
     return _mm_sub_ps(a, b);
 }
 
+/// @brief Multiplies a 3-vector by a float.
 pure_fn vec3 scalar_mul_vec3(const vec3 a, const float b) {
     return _mm_mul_ps(a, _mm_set_ps1(b));
 }
 
+/// @brief Multiplies two 3-vectors element-wise.
 pure_fn vec3 mul_vec3(const vec3 a, const vec3 b) {
     return _mm_mul_ps(a, b);
 }
 
+/// @brief Divides a 3-vector by a float.
 pure_fn vec3 scalar_div_vec3(const vec3 a, const float b) {
     return _mm_div_mac(a, _mm_set_ps1(b));
 }
 
+/// @brief Divides two 3-vectors element-wise.
 pure_fn vec3 div_vec3(const vec3 a, const vec3 b) {
     return _mm_div_mac(a, b);
 }
 
+/// @brief Computes the dot product of two 3-vectors.
 pure_fn float dot_vec3(const vec3 a, const vec3 b) {
     return _mm_cvtss_f32(_mm_dp_ps(a, b, 0b01110001));
 }
-void print_vec3(vec3);
+
 #ifdef VECM_RIGHT_HANDED
 #ifdef VECM_HANDEDNESS_NAMING
+/// @brief Computes the cross product of two 3-vectors in a right handed system
 pure_fn vec3 cross_vec3_right_handed(const vec3 a, const vec3 b)
 #else
+/// @brief Computes the cross product of two 3-vectors in a right handed system
 pure_fn vec3 cross_vec3(const vec3 a, const vec3 b)
 #endif
 {
@@ -60,8 +67,10 @@ pure_fn vec3 cross_vec3(const vec3 a, const vec3 b)
 #endif
 #ifdef VECM_LEFT_HANDED
 #ifdef VECM_HANDEDNESS_NAMING
+/// @brief Computes the cross product of two 3-vectors in a left handed system
 pure_fn vec3 cross_vec3_left_handed(const vec3 a, const vec3 b)
 #else
+/// @brief Computes the cross product of two 3-vectors in a left handed system
 pure_fn vec3 cross_vec3(const vec3 a, const vec3 b)
 #endif
 {
@@ -76,15 +85,18 @@ pure_fn vec3 cross_vec3(const vec3 a, const vec3 b)
 }
 #endif
 
+/// @brief Normalizes a 3-vector.
 pure_fn vec3 norm_vec3(const vec3 a) {
-    float inv_len = 1.0f/sqrtf(_mm_cvtss_f32(_mm_dp_ps(a, a, 0b01110001)));
-    return _mm_mul_ps(a, _mm_set_ps1(inv_len));
+    __m128 inv_len = _mm_rsqrt_mac(_mm_dp_ps(a, a, 0b01110001));
+    return _mm_mul_ps(a, inv_len);
 }
 
+/// @brief Computes the length of a 3-vector.
 pure_fn float len_vec3(const vec3 a) {
     return sqrtf(_mm_cvtss_f32(_mm_dp_ps(a, a, 0b01110001)));
 }
 
+/// @brief Computes the outer product of two 3-vectors.
 pure_fn mat3 outer_vec3(const vec3 a, const vec3 b) {
     mat3 ret;
     ret.m0 = _mm_mul_ps(b, _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a, 0))));

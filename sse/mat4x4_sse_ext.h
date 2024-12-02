@@ -15,6 +15,8 @@ extern "C" {
 // projection: oblique, infinite perspective, reverse z
 // reflective camera, stereo view
 
+/// @brief Create a translation matrix from a vector.
+/// @param b The vector to translate by.
 pure_fn rmat4 translate_rmat4(const __m128 b) {
     rmat4 ret;
     __m128 b2 = _mm_blend_ps(b, _mm_setzero_ps(), 0b1000);
@@ -27,8 +29,14 @@ pure_fn rmat4 translate_rmat4(const __m128 b) {
 
 #ifdef VECM_RIGHT_HANDED
 #ifdef VECM_HANDEDNESS_NAMING
+/// @brief Create a rotation matrix from a vector and an angle in a right-handed system.
+/// @param a The vector to rotate around.
+/// @param angle The angle to rotate by.
 pure_fn rmat4 rotate_rmat4_right_handed(const vec3 a, const float angle)
 #else
+/// @brief Create a rotation matrix from a vector and an angle in a right-handed system.
+/// @param a The vector to rotate around.
+/// @param angle The angle to rotate by.
 pure_fn rmat4 rotate_rmat4(const vec3 a, const float angle)
 #endif
     {
@@ -79,8 +87,14 @@ pure_fn rmat4 rotate_rmat4(const vec3 a, const float angle)
 #endif
 #ifdef VECM_LEFT_HANDED
 #ifdef VECM_HANDEDNESS_NAMING
+/// @brief Create a rotation matrix from a vector and an angle in a left-handed system.
+/// @param a The vector to rotate around.
+/// @param angle The angle to rotate by.
 pure_fn rmat4 rotate_rmat4_left_handed(const vec3 a, const float angle)
 #else
+/// @brief Create a rotation matrix from a vector and an angle in a left-handed system.
+/// @param a The vector to rotate around.
+/// @param angle The angle to rotate by.
 pure_fn rmat4 rotate_rmat4(const vec3 a, const float angle)
 #endif
     {
@@ -130,6 +144,10 @@ pure_fn rmat4 rotate_rmat4(const vec3 a, const float angle)
 }
 #endif
 
+/// @brief Create a scaling matrix from three scaling factors.
+/// @param sc_x The scaling factor for the x-axis.
+/// @param sc_y The scaling factor for the y-axis.
+/// @param sc_z The scaling factor for the z-axis.
 pure_fn rmat4 scale_rmat4(const float sc_x, const float sc_y, const float sc_z) {
     rmat4 ret;
     ret.m0 = _mm_set_ps(0.0f, 0.0f, 0.0f, sc_x);
@@ -139,6 +157,8 @@ pure_fn rmat4 scale_rmat4(const float sc_x, const float sc_y, const float sc_z) 
     return ret;
 }
 
+/// @brief Creates a reflection matrix across a plane given by a normal vector.
+/// @param n The normal vector of the plane to reflect across.
 pure_fn rmat4 reflect_rmat4(const vec3 n) {
     // | xx xy xz 0 |
     // | yx yy yz 0 |
@@ -166,6 +186,11 @@ pure_fn rmat4 reflect_rmat4(const vec3 n) {
     return ret;
 }
 
+/// @brief Create a pererspective projection matrix.
+/// @param aspect The aspect ratio of the viewport.
+/// @param fov The field of view in radians.
+/// @param _near The distance to the near plane.
+/// @param _far The distance to the far plane.
 pure_fn rmat4 perspective_rmat4(const float aspect, const float fov, const float _near, const float _far) {
     // _near and _far since Win32 defines near and far as macros
     float inv_asp_tanfov = 1.0f/(aspect * tanf(fov/2));
@@ -178,6 +203,10 @@ pure_fn rmat4 perspective_rmat4(const float aspect, const float fov, const float
     return ret;
 }
 
+/// @brief Create a look-at matrix.
+/// @param camera The position of the camera.
+/// @param target The position of the target.
+/// @param up The up vector.
 pure_fn rmat4 look_at_rmat4(const vec3 camera, const vec3 target, const vec3 up) {
     // m0 = right, m1 = up, m2 = -forward
     __m128 neg_cam = _mm_xor_ps(camera, _mm_set_ps1(-0.0f));
@@ -213,6 +242,10 @@ pure_fn rmat4 look_at_rmat4(const vec3 camera, const vec3 target, const vec3 up)
     return ret;
 }
 
+/// @brief Rotate a vector around another vector by an angle.
+/// @param a The vector to rotate.
+/// @param axis The axis to rotate around.
+/// @param angle The angle to rotate by in radians.
 pure_fn vec3 rotate_vec3(const vec3 a, const vec3 axis, const float angle) {
     float cos_angle = cosf(angle);
     float sin_angle = sinf(angle);

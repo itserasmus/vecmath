@@ -9,8 +9,8 @@ namespace avx {
 extern "C" {
 #endif
 
-// add, sub, scal_mul, mul, det, adj, inv, trans, pre_vec_mul, post_vec_mul, powers
 
+/// @brief Add two 4x4 matrices.
 pure_fn rmat4 add_rmat4(const rmat4 a, const rmat4 b) {
     rmat4 ret;
     ret.m0 = _mm256_add_ps(a.m0, b.m0);
@@ -18,6 +18,7 @@ pure_fn rmat4 add_rmat4(const rmat4 a, const rmat4 b) {
     return ret;
 }
 
+/// @brief Subtract two 4x4 matrices.
 pure_fn rmat4 sub_rmat4(const rmat4 a, const rmat4 b) {
     rmat4 ret;
     ret.m0 = _mm256_sub_ps(a.m0, b.m0);
@@ -25,6 +26,7 @@ pure_fn rmat4 sub_rmat4(const rmat4 a, const rmat4 b) {
     return ret;
 }
 
+/// @brief Multtiply a 4x4 matrix by a scalar.
 pure_fn rmat4 scal_mul_rmat4(const rmat4 a, const float b) {
     rmat4 ret;
     __m256 b_vec = _mm256_set1_ps(b);
@@ -33,6 +35,7 @@ pure_fn rmat4 scal_mul_rmat4(const rmat4 a, const float b) {
     return ret;
 }
 
+/// @brief Transpose a 4x4 matrix.
 pure_fn rmat4 trans_rmat4(const rmat4 a) {
     rmat4 ret;
     ret.m0 = _mm256_permute2f128_ps(a.m0, a.m1, 0b00100000);
@@ -48,6 +51,7 @@ pure_fn rmat4 trans_rmat4(const rmat4 a) {
     return ret;
 }
 
+/// @brief Compute the determinant of a 4x4 matrix.
 pure_fn float det_rmat4(const rmat4 a) {
     // det = 
     // (a0b0 - a0b0) * (a1b1 - a1b1)
@@ -81,6 +85,7 @@ pure_fn float det_rmat4(const rmat4 a) {
     return _mm_cvtss_f32(_mm256_castps256_ps128(dp)) + _mm_cvtss_f32(_mm256_extractf128_ps(dp, 1));
 }
 
+/// @brief Multiply a 4-vector by a 4x4 matrix.
 pure_fn vec4 mul_vec4_rmat4(const vec4 a, const rmat4 b) {
     __m256 tmp0 = _mm256_fma_mac(
         _mm256_set_m128(
@@ -102,6 +107,7 @@ pure_fn vec4 mul_vec4_rmat4(const vec4 a, const rmat4 b) {
     );
 }
 
+/// @brief Multiply a 4x4 matrix by a 4-vector.
 pure_fn vec4 mul_rmat4_vec4(const rmat4 a, const vec4 b) {
     __m256 b_exp = _mm256_set_m128(b, b); // expanded b
     __m256 tmp0 = _mm256_blend_ps(
@@ -116,6 +122,7 @@ pure_fn vec4 mul_rmat4_vec4(const rmat4 a, const vec4 b) {
     return _mm_permute_mac(ret, _MM_SHUFFLE(3, 1, 2, 0));
 }
 
+/// @brief Multiply two 4x4 matrices.
 pure_fn rmat4 mul_rmat4(const rmat4 a, const rmat4 b) {
     rmat4 ret;
     ret.m0 = _mm256_fma_mac(
@@ -141,6 +148,7 @@ pure_fn rmat4 mul_rmat4(const rmat4 a, const rmat4 b) {
     return ret;
 }
 
+/// @brief Compute the cofactor of a 4x4 matrix.
 pure_fn rmat4 cofactor_rmat4(const rmat4 a) {
     rmat4 ret;
     // determinants (the columns of the determinant):
@@ -197,6 +205,7 @@ pure_fn rmat4 cofactor_rmat4(const rmat4 a) {
     return ret;
 }
 
+/// @brief Compute the adjoint of a 4x4 matrix.
 pure_fn rmat4 adj_rmat4(const rmat4 a) {
     rmat4 ret;
     ret.m0 = _mm256_permute2f128_ps(_mm256_fms_mac(
@@ -246,6 +255,7 @@ pure_fn rmat4 adj_rmat4(const rmat4 a) {
     return ret;
 }
 
+/// @brief Compute the inverse of a 4x4 matrix.
 pure_fn rmat4 inv_rmat4(const rmat4 a) {
     rmat4 ret;
     ret.m0 = _mm256_permute2f128_ps(_mm256_fms_mac(
@@ -296,6 +306,7 @@ pure_fn rmat4 inv_rmat4(const rmat4 a) {
     return ret;
 }
 
+/// @brief Compute the square of a 4x4 matrix.
 pure_fn rmat4 sqr_rmat4(const rmat4 a) {
     rmat4 ret;
     ret.m0 = _mm256_fma_mac(
@@ -321,9 +332,7 @@ pure_fn rmat4 sqr_rmat4(const rmat4 a) {
     return ret;
 }
 
-
-
-
+/// @brief Compute the Nth positive integral power of a 4x4 matrix.
 pure_fn rmat4 pow_rmat4(const rmat4 a, const unsigned N) {
     rmat4 res = create_rmat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
     rmat4 base = a;
@@ -343,13 +352,13 @@ pure_fn rmat4 pow_rmat4(const rmat4 a, const unsigned N) {
 
 
 
-
-
+/// @brief Store a 4x4 matrix as an array.
 void store_rmat4(float* arr, const rmat4 a) { // arr must be at least 16 wide
     _mm256_storeu_ps(arr, a.m0);
     _mm256_storeu_ps(arr + 8, a.m1);
 }
 
+/// @brief Print a 4x4 matrix.
 void print_rmat4(const rmat4 a) {
     _Alignas(16) float arr[16];
     _mm256_store_ps(arr, a.m0);
@@ -362,10 +371,12 @@ void print_rmat4(const rmat4 a) {
     );
 }
 
+/// @brief Store a 4-vector as an array.
 void store_vec4(float* arr, const vec4 a) { // arr must be at least 4 wide
     _mm_storeu_ps(arr, a);
 }
 
+/// @brief Print a 4-vector.
 void print_vec4(const vec4 a) {
     printf("%f %f %f %f\n",
         _mm_extractf_ps(a, 0),

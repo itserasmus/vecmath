@@ -9,8 +9,7 @@ namespace sse {
 extern "C" {
 #endif
 
-// add, sub, scal_mul, mul, det, adj, inv, trans, pre_vec_mul, post_vec_mul, powers
-
+/// @brief Add two 4x4 matrices.
 pure_fn mat4 add_mat4(const mat4 a, const mat4 b) {
     mat4 ret;
     ret.b0 = _mm_add_ps(a.b0, b.b0);
@@ -20,6 +19,7 @@ pure_fn mat4 add_mat4(const mat4 a, const mat4 b) {
     return ret;
 }
 
+/// @brief Subtract two 4x4 matrices.
 pure_fn mat4 sub_mat4(const mat4 a, const mat4 b) {
     mat4 ret;
     ret.b0 = _mm_sub_ps(a.b0, b.b0);
@@ -29,6 +29,7 @@ pure_fn mat4 sub_mat4(const mat4 a, const mat4 b) {
     return ret;
 }
 
+/// @brief Multiply a 4x4 matrix by a scalar.
 pure_fn mat4 scal_mul_mat4(const mat4 a, const float b) {
     __m128 b_vec = _mm_set_ps1(b);
     mat4 ret;
@@ -39,6 +40,7 @@ pure_fn mat4 scal_mul_mat4(const mat4 a, const float b) {
     return ret;
 }
 
+/// @brief Transpose a 4x4 matrix.
 pure_fn mat4 trans_mat4(const mat4 a) {
     mat4 ret;
     ret.b0 = _mm_permute_mac(a.b0, _MM_SHUFFLE(3, 1, 2, 0));
@@ -48,6 +50,7 @@ pure_fn mat4 trans_mat4(const mat4 a) {
     return ret;
 }
 
+/// @brief Multiply a 4-vector by a 4x4 matrix.
 pure_fn vec4 mul_vec4_mat4(const vec4 a, const mat4 b) {
     __m128 a_0011 = _mm_permute_mac(a, _MM_SHUFFLE(1, 1, 0, 0));
     __m128 a_2233 = _mm_permute_mac(a, _MM_SHUFFLE(3, 3, 2, 2));
@@ -65,6 +68,7 @@ pure_fn vec4 mul_vec4_mat4(const vec4 a, const mat4 b) {
     );
 }
 
+/// @brief Multiply a 4x4 matrix by a 4-vector.
 pure_fn vec4 mul_mat4_vec4(const mat4 a, const vec4 b) {
     __m128 b0101 = _mm_movelh_ps(b, b);
     __m128 b2323 = _mm_movehl_ps(b, b);
@@ -81,6 +85,7 @@ pure_fn vec4 mul_mat4_vec4(const mat4 a, const vec4 b) {
     );
 }
 
+/// @brief Multiply two 4x4 matrices.
 pure_fn mat4 mul_mat4(const mat4 a, const mat4 b) {
     __m128 aperm3 = _mm_permute_mac(a.b1, _MM_SHUFFLE(2, 2, 1, 1));
     __m128 aperm2 = _mm_permute_mac(a.b1, _MM_SHUFFLE(3, 3, 0, 0));
@@ -137,6 +142,7 @@ pure_fn mat4 mul_mat4(const mat4 a, const mat4 b) {
     return ret;
 }
 
+/// @brief Compute the determinant of a 4x4 matrix.
 pure_fn float det_mat4(const mat4 a) {
     // det =
     // (a0a3 - a1a2)(c0c3 - c1c2) +
@@ -177,6 +183,7 @@ pure_fn float det_mat4(const mat4 a) {
     ));
 }
 
+/// @brief Compute the cofactor of a 4x4 matrix.
 pure_fn mat4 cofactor_mat4(const mat4 a) {
     mat4 ret;
     // determinants (the ids of the determinants (AB - AB)):
@@ -256,6 +263,7 @@ pure_fn mat4 cofactor_mat4(const mat4 a) {
     return ret;
 }
 
+/// @brief Compute the adjoint of a 4x4 matrix.
 pure_fn mat4 adj_mat4(const mat4 a) {
     // Look at cofactor_mat4 for the algorithm specifics.
     // adj_mat4 simply adds transposition within the _MM_SHUFFLEs
@@ -314,6 +322,7 @@ pure_fn mat4 adj_mat4(const mat4 a) {
     return ret;
 }
 
+/// @brief Compute the inverse of a 4x4 matrix.
 pure_fn mat4 inv_mat4(const mat4 a) {
     // Look at cofactor_mat4 for the algorithm specifics.
     // inv_mat4 simply adds transposition within the _MM_SHUFFLEs
@@ -385,7 +394,7 @@ pure_fn mat4 inv_mat4(const mat4 a) {
 }
 
 
-
+/// @brief Compute the square of a 4x4 matrix.
 pure_fn mat4 sqr_mat4(const mat4 a) {
     __m128 aperm3 = _mm_permute_mac(a.b1, _MM_SHUFFLE(2, 2, 1, 1));
     __m128 aperm2 = _mm_permute_mac(a.b1, _MM_SHUFFLE(3, 3, 0, 0));
@@ -442,7 +451,7 @@ pure_fn mat4 sqr_mat4(const mat4 a) {
     return ret;
 }
 
-
+/// @brief Compute the Nth positive integral power of a 4x4 matrix.
 pure_fn mat4 pow_mat4(const mat4 a, const unsigned N) {
     mat4 res = create_mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
     mat4 base = a;
@@ -467,6 +476,7 @@ pure_fn mat4 pow_mat4(const mat4 a, const unsigned N) {
     store = arr[i]; \
     arr[i] = arr[j]; \
     arr[j] = store
+/// @brief Store a 4x4 block matrix as an array.
 void store_mat4(float *arr, const mat4 a) {
     memcpy(arr, &a, sizeof(mat4));
     // a0 a1 b0 b1
@@ -480,6 +490,7 @@ void store_mat4(float *arr, const mat4 a) {
     swap_mat_tmp_6969(11, 13);
 }
 #undef swap_mat_tmp_6969
+/// @brief Print a 4x4 block matrix.
 void print_mat4(const mat4 a) {
     _Alignas(16) float arr[16];
     memcpy(arr, &a, sizeof(mat4));

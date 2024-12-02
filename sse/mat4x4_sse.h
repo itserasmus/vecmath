@@ -9,51 +9,55 @@ namespace sse {
 extern "C" {
 #endif
 
-// add, sub, scal_mul, mul, det, adj, inv, trans, pre_vec_mul, post_vec_mul, powers
 
+/// @brief Add two 4x4 matrices.
 pure_fn rmat4 add_rmat4(const rmat4 a, const rmat4 b) {
-    return (rmat4) {
-        .m0 = _mm_add_ps(a.m0, b.m0),
-        .m1 = _mm_add_ps(a.m1, b.m1),
-        .m2 = _mm_add_ps(a.m2, b.m2),
-        .m3 = _mm_add_ps(a.m3, b.m3)
-    };
+    rmat4 ret;
+    ret.m0 = _mm_add_ps(a.m0, b.m0);
+    ret.m1 = _mm_add_ps(a.m1, b.m1);
+    ret.m2 = _mm_add_ps(a.m2, b.m2);
+    ret.m3 = _mm_add_ps(a.m3, b.m3);
+    return ret;
 }
 
+/// @brief Subtract two 4x4 matrices.
 pure_fn rmat4 sub_rmat4(const rmat4 a, const rmat4 b) {
-    return (rmat4) {
-        .m0 = _mm_sub_ps(a.m0, b.m0),
-        .m1 = _mm_sub_ps(a.m1, b.m1),
-        .m2 = _mm_sub_ps(a.m2, b.m2),
-        .m3 = _mm_sub_ps(a.m3, b.m3)
-    };
+    rmat4 ret;
+    ret.m0 = _mm_sub_ps(a.m0, b.m0);
+    ret.m1 = _mm_sub_ps(a.m1, b.m1);
+    ret.m2 = _mm_sub_ps(a.m2, b.m2);
+    ret.m3 = _mm_sub_ps(a.m3, b.m3);
+    return ret;
 }
 
+/// @brief Multiply a 4x4 matrix by a scalar.
 pure_fn rmat4 scal_mul_rmat4(const rmat4 a, const float b) {
     __m128 b_vec = _mm_set_ps1(b);
-    return (rmat4) {
-        .m0 = _mm_mul_ps(a.m0, b_vec),
-        .m1 = _mm_mul_ps(a.m1, b_vec),
-        .m2 = _mm_mul_ps(a.m2, b_vec),
-        .m3 = _mm_mul_ps(a.m3, b_vec)
-    };
+    rmat4 ret;
+    ret.m0 = _mm_mul_ps(a.m0, b_vec);
+    ret.m1 = _mm_mul_ps(a.m1, b_vec);
+    ret.m2 = _mm_mul_ps(a.m2, b_vec);
+    ret.m3 = _mm_mul_ps(a.m3, b_vec);
+    return ret;
 }
 
+/// @brief Transpose a 4x4 matrix.
 pure_fn rmat4 trans_rmat4(const rmat4 a) {
-    __m128 _Tmp3, _Tmp2, _Tmp1, _Tmp0;                                
+    __m128 _Tmp3, _Tmp2, _Tmp1, _Tmp0;
     _Tmp0   = _mm_shuffle_ps(a.m0, a.m1, 0x44);
     _Tmp2   = _mm_shuffle_ps(a.m0, a.m1, 0xEE);
     _Tmp1   = _mm_shuffle_ps(a.m2, a.m3, 0x44);
     _Tmp3   = _mm_shuffle_ps(a.m2, a.m3, 0xEE);
 
-    return (rmat4) {                                     
-        .m0 = _mm_shuffle_ps(_Tmp0, _Tmp1, 0x88),
-        .m1 = _mm_shuffle_ps(_Tmp0, _Tmp1, 0xDD),
-        .m2 = _mm_shuffle_ps(_Tmp2, _Tmp3, 0x88),
-        .m3 = _mm_shuffle_ps(_Tmp2, _Tmp3, 0xDD)
-    };
+    rmat4 ret;
+    ret.m0 = _mm_shuffle_ps(_Tmp0, _Tmp1, 0x88);
+    ret.m1 = _mm_shuffle_ps(_Tmp0, _Tmp1, 0xDD);
+    ret.m2 = _mm_shuffle_ps(_Tmp2, _Tmp3, 0x88);
+    ret.m3 = _mm_shuffle_ps(_Tmp2, _Tmp3, 0xDD);
+    return ret;
 }
 
+/// @brief Compute the determinant of a 4x4 matrix.
 pure_fn float det_rmat4(const rmat4 a) {
     // det = 
     // (a0b1 - a1b0)(c2d3 - c3d2) +
@@ -88,6 +92,7 @@ pure_fn float det_rmat4(const rmat4 a) {
     return first_4 + last_2;
 }
 
+/// @brief Multiply a 4-vector by a 4x4 matrix.
 pure_fn vec4 mul_vec4_rmat4(const vec4 a, const rmat4 b) {
     __m128 _Tmp3, _Tmp2, _Tmp1, _Tmp0;                                
     _Tmp0   = _mm_shuffle_ps(b.m0, b.m1, 0x44);
@@ -102,6 +107,7 @@ pure_fn vec4 mul_vec4_rmat4(const vec4 a, const rmat4 b) {
     );
 }
 
+/// @brief Multiply a 4x4 matrix by a 4-vector.
 pure_fn vec4 mul_rmat4_vec4(const rmat4 a, const vec4 b) {
     return create_vec4(
         _mm_cvtss_f32(_mm_dp_ps(a.m0, b, 0b11110001)),
@@ -111,51 +117,53 @@ pure_fn vec4 mul_rmat4_vec4(const rmat4 a, const vec4 b) {
     );
 }
 
+/// @brief Multiply two 4x4 matrices.
 pure_fn rmat4 mul_rmat4(const rmat4 a, const rmat4 b) {
-    return (rmat4) {
-        .m0 = _mm_fma_mac(
-            _mm_permute_mac(a.m0, _MM_SHUFFLE(0, 0, 0, 0)), b.m0,
+    rmat4 ret;
+    ret.m0 = _mm_fma_mac(
+        _mm_permute_mac(a.m0, _MM_SHUFFLE(0, 0, 0, 0)), b.m0,
+        _mm_fma_mac(
+            _mm_permute_mac(a.m0, _MM_SHUFFLE(1, 1, 1, 1)), b.m1,
             _mm_fma_mac(
-                _mm_permute_mac(a.m0, _MM_SHUFFLE(1, 1, 1, 1)), b.m1,
-                _mm_fma_mac(
-                    _mm_permute_mac(a.m0, _MM_SHUFFLE(2, 2, 2, 2)), b.m2,
-                    _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(3, 3, 3, 3)), b.m3)
-                )
-            )
-        ),
-        .m1 = _mm_fma_mac(
-            _mm_permute_mac(a.m1, _MM_SHUFFLE(0, 0, 0, 0)), b.m0,
-            _mm_fma_mac(
-                _mm_permute_mac(a.m1, _MM_SHUFFLE(1, 1, 1, 1)), b.m1,
-                _mm_fma_mac(
-                    _mm_permute_mac(a.m1, _MM_SHUFFLE(2, 2, 2, 2)), b.m2,
-                    _mm_mul_ps(_mm_permute_mac(a.m1, _MM_SHUFFLE(3, 3, 3, 3)), b.m3)
-                )
-            )
-        ),
-        .m2 = _mm_fma_mac(
-            _mm_permute_mac(a.m2, _MM_SHUFFLE(0, 0, 0, 0)), b.m0,
-            _mm_fma_mac(
-                _mm_permute_mac(a.m2, _MM_SHUFFLE(1, 1, 1, 1)), b.m1,
-                _mm_fma_mac(
-                    _mm_permute_mac(a.m2, _MM_SHUFFLE(2, 2, 2, 2)), b.m2,
-                    _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(3, 3, 3, 3)), b.m3)
-                )
-            )
-        ),
-        .m3 = _mm_fma_mac(
-            _mm_permute_mac(a.m3, _MM_SHUFFLE(0, 0, 0, 0)), b.m0,
-            _mm_fma_mac(
-                _mm_permute_mac(a.m3, _MM_SHUFFLE(1, 1, 1, 1)), b.m1,
-                _mm_fma_mac(
-                    _mm_permute_mac(a.m3, _MM_SHUFFLE(2, 2, 2, 2)), b.m2,
-                    _mm_mul_ps(_mm_permute_mac(a.m3, _MM_SHUFFLE(3, 3, 3, 3)), b.m3)
-                )
+                _mm_permute_mac(a.m0, _MM_SHUFFLE(2, 2, 2, 2)), b.m2,
+                _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(3, 3, 3, 3)), b.m3)
             )
         )
-    };
+    );
+    ret.m1 = _mm_fma_mac(
+        _mm_permute_mac(a.m1, _MM_SHUFFLE(0, 0, 0, 0)), b.m0,
+        _mm_fma_mac(
+            _mm_permute_mac(a.m1, _MM_SHUFFLE(1, 1, 1, 1)), b.m1,
+            _mm_fma_mac(
+                _mm_permute_mac(a.m1, _MM_SHUFFLE(2, 2, 2, 2)), b.m2,
+                _mm_mul_ps(_mm_permute_mac(a.m1, _MM_SHUFFLE(3, 3, 3, 3)), b.m3)
+            )
+        )
+    );
+    ret.m2 = _mm_fma_mac(
+        _mm_permute_mac(a.m2, _MM_SHUFFLE(0, 0, 0, 0)), b.m0,
+        _mm_fma_mac(
+            _mm_permute_mac(a.m2, _MM_SHUFFLE(1, 1, 1, 1)), b.m1,
+            _mm_fma_mac(
+                _mm_permute_mac(a.m2, _MM_SHUFFLE(2, 2, 2, 2)), b.m2,
+                _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(3, 3, 3, 3)), b.m3)
+            )
+        )
+    );
+    ret.m3 = _mm_fma_mac(
+        _mm_permute_mac(a.m3, _MM_SHUFFLE(0, 0, 0, 0)), b.m0,
+        _mm_fma_mac(
+            _mm_permute_mac(a.m3, _MM_SHUFFLE(1, 1, 1, 1)), b.m1,
+            _mm_fma_mac(
+                _mm_permute_mac(a.m3, _MM_SHUFFLE(2, 2, 2, 2)), b.m2,
+                _mm_mul_ps(_mm_permute_mac(a.m3, _MM_SHUFFLE(3, 3, 3, 3)), b.m3)
+            )
+        )
+    );
+    return ret;
 }
 
+/// @brief Compute the cofactor of a 4x4 matrix.
 pure_fn rmat4 cofactor_rmat4(const rmat4 a) {
     rmat4 ret;
     // determinants (the columns of the determinant):
@@ -239,6 +247,7 @@ pure_fn rmat4 cofactor_rmat4(const rmat4 a) {
     return ret;
 }
 
+/// @brief Compute the adjoint of a 4x4 matrix.
 pure_fn rmat4 adj_rmat4(const rmat4 a) {
     // for the algorithm, refer to cofactor_mat4. adj_mat4 simply
     // uses that algorithm and then transposes that matrix
@@ -320,6 +329,7 @@ pure_fn rmat4 adj_rmat4(const rmat4 a) {
     return ret;
 }
 
+/// @brief Compute the inverse of a 4x4 matrix.
 pure_fn rmat4 inv_rmat4(const rmat4 a) {
     rmat4 ret;
     
@@ -400,52 +410,53 @@ pure_fn rmat4 inv_rmat4(const rmat4 a) {
     return ret;
 }
 
-
+/// @brief Compute the square of a 4x4 matrix.
 pure_fn rmat4 sqr_rmat4(const rmat4 a) {
-    return (rmat4) {
-        .m0 = _mm_fma_mac(
-            _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m0, 0))), a.m0,
+    rmat4 ret;
+    ret.m0 = _mm_fma_mac(
+        _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m0, 0))), a.m0,
+        _mm_fma_mac(
+            _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m0, 1))), a.m1,
             _mm_fma_mac(
-                _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m0, 1))), a.m1,
-                _mm_fma_mac(
-                    _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m0, 2))), a.m2,
-                    _mm_mul_ps(_mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m0, 3))), a.m3)
-                )
-            )
-        ),
-        .m1 = _mm_fma_mac(
-            _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m1, 0))), a.m0,
-            _mm_fma_mac(
-                _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m1, 1))), a.m1,
-                _mm_fma_mac(
-                    _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m1, 2))), a.m2,
-                    _mm_mul_ps(_mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m1, 3))), a.m3)
-                )
-            )
-        ),
-        .m2 = _mm_fma_mac(
-            _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m2, 0))), a.m0,
-            _mm_fma_mac(
-                _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m2, 1))), a.m1,
-                _mm_fma_mac(
-                    _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m2, 2))), a.m2,
-                    _mm_mul_ps(_mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m2, 3))), a.m3)
-                )
-            )
-        ),
-        .m3 = _mm_fma_mac(
-            _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m3, 0))), a.m0,
-            _mm_fma_mac(
-                _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m3, 1))), a.m1,
-                _mm_fma_mac(
-                    _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m3, 2))), a.m2,
-                    _mm_mul_ps(_mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m3, 3))), a.m3)
-                )
+                _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m0, 2))), a.m2,
+                _mm_mul_ps(_mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m0, 3))), a.m3)
             )
         )
-    };
+    );
+    ret.m1 = _mm_fma_mac(
+        _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m1, 0))), a.m0,
+        _mm_fma_mac(
+            _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m1, 1))), a.m1,
+            _mm_fma_mac(
+                _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m1, 2))), a.m2,
+                _mm_mul_ps(_mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m1, 3))), a.m3)
+            )
+        )
+    );
+    ret.m2 = _mm_fma_mac(
+        _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m2, 0))), a.m0,
+        _mm_fma_mac(
+            _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m2, 1))), a.m1,
+            _mm_fma_mac(
+                _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m2, 2))), a.m2,
+                _mm_mul_ps(_mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m2, 3))), a.m3)
+            )
+        )
+    );
+    ret.m3 = _mm_fma_mac(
+        _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m3, 0))), a.m0,
+        _mm_fma_mac(
+            _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m3, 1))), a.m1,
+            _mm_fma_mac(
+                _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m3, 2))), a.m2,
+                _mm_mul_ps(_mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m3, 3))), a.m3)
+            )
+        )
+    );
+    return ret;
 }
 
+/// @brief Compute the Nth positive integral power of a 4x4 matrix.
 pure_fn rmat4 pow_rmat4(const rmat4 a, const unsigned N) {
     rmat4 res = create_rmat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
     rmat4 base = a;
@@ -467,7 +478,7 @@ pure_fn rmat4 pow_rmat4(const rmat4 a, const unsigned N) {
 
 
 
-
+/// @brief Store a 4x4 matrix as an array.
 void store_rmat4(float *arr, const rmat4 a) { // arr must be at least 16 wide
     _mm_storeu_ps(arr, a.m0);
     _mm_storeu_ps(arr + 4, a.m1);
@@ -475,6 +486,7 @@ void store_rmat4(float *arr, const rmat4 a) { // arr must be at least 16 wide
     _mm_storeu_ps(arr + 12, a.m3);
 }
 
+/// @brief Print a 4x4 matrix.
 void print_rmat4(const rmat4 a) {
     _Alignas(16) float a_arr[16];
     memcpy(a_arr, &a, sizeof(rmat4));
@@ -486,10 +498,12 @@ void print_rmat4(const rmat4 a) {
     );
 }
 
+/// @brief Store a 4-vector as an array.
 void store_vec4(float *arr, const vec4 a) { // arr must be at least 4 wide
     _mm_storeu_ps(arr, a);
 }
 
+/// @brief Print a 4-vector.
 void print_vec4(const vec4 a) {
     _Alignas(16) float a_arr[4];
     _mm_store_ps(a_arr, a);

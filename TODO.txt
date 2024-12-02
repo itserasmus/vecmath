@@ -2,3 +2,4 @@
 - avx512 everthing
 - matmxn
 - avx,avx512 mat4,rmat4 and sse mat4 graphics extensions 
+- test `avx::outer_vec4`

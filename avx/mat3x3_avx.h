@@ -9,30 +9,32 @@ namespace avx {
 extern "C" {
 #endif
 
-// add, sub, scal_mul, mul, det, adj, inv, trans, pre_vec_mul, post_vec_mul, powers
 
-
+/// @brief Adds two 3x3 matrices.
 pure_fn mat3 add_mat3(const mat3 a, const mat3 b) {
-    return (mat3) {
-        .m0 = _mm256_add_ps(a.m0, b.m0),
-        .m1 = _mm_add_ps(a.m1, b.m1),
-    };
+    mat3 ret;
+    ret.m0 = _mm256_add_ps(a.m0, b.m0);
+    ret.m1 = _mm_add_ps(a.m1, b.m1);
+    return ret;
 }
 
+/// @brief Subtracts two 3x3 matrices.
 pure_fn mat3 sub_mat3(const mat3 a, const mat3 b) {
-    return (mat3) {
-        .m0 = _mm256_sub_ps(a.m0, b.m0),
-        .m1 = _mm_sub_ps(a.m1, b.m1),
-    };
+    mat3 ret;
+    ret.m0 = _mm256_sub_ps(a.m0, b.m0);
+    ret.m1 = _mm_sub_ps(a.m1, b.m1);
+    return ret;
 }
 
+/// @brief Multiplies a 3x3 matrix by a scalar.
 pure_fn mat3 scal_mul_mat3(const mat3 a, const float b) {
-    return (mat3) {
-        .m0 = _mm256_mul_ps(a.m0, _mm256_set1_ps(b)),
-        .m1 = _mm_mul_ps(a.m1, _mm_set_ps1(b)),
-    };
+    mat3 ret;
+    ret.m0 = _mm256_mul_ps(a.m0, _mm256_set1_ps(b));
+    ret.m1 = _mm_mul_ps(a.m1, _mm_set_ps1(b));
+    return ret;
 }
 
+/// @brief Transposes a 3x3 matrix.
 pure_fn mat3 trans_mat3(const mat3 a) {
     mat3 ret;
     __m128 tmp = _mm_movelh_ps( // contains m0 -> 0 1 4 5
@@ -51,6 +53,7 @@ pure_fn mat3 trans_mat3(const mat3 a) {
     return ret;
 }
 
+/// @brief Computes the determinant of a 3x3 matrix.
 pure_fn float det_mat3(const mat3 a) {
     // det = 
     // c0 * (b1a2 - b2a1) +
@@ -71,6 +74,7 @@ pure_fn float det_mat3(const mat3 a) {
     return _mm_cvtss_f32(_mm_dp_ps(a.m1, diff, 0b01110001));
 }
 
+/// @brief Multiplies a 3-vector by a 3x3 matrix.
 pure_fn vec3 mul_vec3_mat3(const vec3 a, const mat3 b) {
     __m128 tmp = _mm_movelh_ps( // contains m0 -> 0 1 4 5
         _mm256_castps256_ps128(b.m0),
@@ -87,6 +91,7 @@ pure_fn vec3 mul_vec3_mat3(const vec3 a, const mat3 b) {
     );
 }
 
+/// @brief Multiplies a 3x3 matrix by a 3-vector.
 pure_fn vec3 mul_mat3_vec3(const mat3 a, const vec3 b) {
     return create_vec3(
         _mm_cvtss_f32(_mm_dp_ps(_mm256_castps256_ps128(a.m0), b, 0b01110001)),
@@ -95,6 +100,7 @@ pure_fn vec3 mul_mat3_vec3(const mat3 a, const vec3 b) {
     );
 }
 
+/// @brief Multiplies two 3x3 matrices.
 pure_fn mat3 mul_mat3(const mat3 a, const mat3 b) {
     mat3 ret;
     ret.m0 = _mm256_fma_mac(
@@ -127,6 +133,7 @@ pure_fn mat3 mul_mat3(const mat3 a, const mat3 b) {
     return ret;
 }
 
+/// @brief Computes the cofator of a 3x3 matrix.
 pure_fn mat3 cofactor_mat3(const mat3 a) {
     mat3 ret;
     __m256 tmp = _mm256_set_m128(
@@ -153,6 +160,7 @@ pure_fn mat3 cofactor_mat3(const mat3 a) {
     return ret;
 }
 
+/// @brief Computes the adjoint of a 3x3 matrix.
 pure_fn mat3 adj_mat3(const mat3 a) {
     mat3 store;
     __m256 tmp = _mm256_set_m128(
@@ -193,6 +201,7 @@ pure_fn mat3 adj_mat3(const mat3 a) {
     return ret;
 }
 
+/// @brief Computes the inverse of a 3x3 matrix.
 pure_fn mat3 inv_mat3(const mat3 a) {
     mat3 store;
     __m256 tmp = _mm256_set_m128(
@@ -237,6 +246,7 @@ pure_fn mat3 inv_mat3(const mat3 a) {
     return ret;
 }
 
+/// @brief Computes the square of a 3x3 matrix.
 pure_fn mat3 sqr_mat3(const mat3 a) {
     mat3 ret;
     ret.m0 = _mm256_fma_mac(
@@ -270,7 +280,7 @@ pure_fn mat3 sqr_mat3(const mat3 a) {
 }
 
 
-
+/// @brief Computes the Nth positive integral power of a 3x3 matrix.
 pure_fn mat3 pow_mat3(const mat3 a, const unsigned N) {
     mat3 res = create_mat3(1,0,0, 0,1,0, 0,0,1);
     mat3 base = a;
@@ -289,12 +299,13 @@ pure_fn mat3 pow_mat3(const mat3 a, const unsigned N) {
 
 
 
-
+/// @brief Stores a 3x3 matrix as an array.
 void store_mat3(float *arr, const mat3 a) { // arr must be at least 10 wide
     _mm256_storeu_ps(arr, a.m0);
     _mm_storeu_ps(arr + 6, a.m1);
 }
 
+/// @brief Prints a 3x3 matrix.
 void print_mat3(const mat3 a) {
     _Alignas(16) float a_arr[12];
     _mm256_store_ps(a_arr, a.m0);
@@ -306,10 +317,12 @@ void print_mat3(const mat3 a) {
     );
 }
 
+/// @brief Stores a vec3 as an array.
 void store_vec3(float *arr, const vec3 a) { // arr must be at least 4 wide
     _mm_storeu_ps(arr, a);
 }
 
+/// @brief Prints a vec3.
 void print_vec3(const vec3 a) {
     _Alignas(16) float a_arr[4];
     _mm_store_ps(a_arr, a);

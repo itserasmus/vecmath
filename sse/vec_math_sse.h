@@ -35,11 +35,8 @@
 #include "mat2x2_sse.h"
 #include "mat3x3_sse.h"
 #include "mat4x4_sse.h"
+#include "mat4x4_row_sse.h"
 
-
-#include "block_mat4x4_sse.h"
-
-
-#include "mat4x4_sse_ext.h"
+#include "mat4x4_row_sse_ext.h"
 
 #endif

@@ -1,3 +1,15 @@
+/**
+ * VecMath - SIMD-based Matrix and Vector Library
+ * 
+ * This file is part of the VecMath project and is licensed under the MIT License.
+ * See the LICENSE file in the root of the repository for full license details.
+ * 
+ * Copyright (c) 2024 Om Patil
+ */
+
+/**
+ * Contains all `mat4` related functions for the SSE implementation of VecMath.
+ */
 #ifndef MAT4X4_H_SSE
 #define MAT4X4_H_SSE
 #include "vec_math_sse.h"
@@ -9,238 +21,254 @@ namespace sse {
 extern "C" {
 #endif
 
-
 /// @brief Add two 4x4 matrices.
-pure_fn rmat4 add_rmat4(const rmat4 a, const rmat4 b) {
-    rmat4 ret;
-    ret.m0 = _mm_add_ps(a.m0, b.m0);
-    ret.m1 = _mm_add_ps(a.m1, b.m1);
-    ret.m2 = _mm_add_ps(a.m2, b.m2);
-    ret.m3 = _mm_add_ps(a.m3, b.m3);
+pure_fn mat4 add_mat4(const mat4 a, const mat4 b) {
+    mat4 ret;
+    ret.b0 = _mm_add_ps(a.b0, b.b0);
+    ret.b1 = _mm_add_ps(a.b1, b.b1);
+    ret.b2 = _mm_add_ps(a.b2, b.b2);
+    ret.b3 = _mm_add_ps(a.b3, b.b3);
     return ret;
 }
 
 /// @brief Subtract two 4x4 matrices.
-pure_fn rmat4 sub_rmat4(const rmat4 a, const rmat4 b) {
-    rmat4 ret;
-    ret.m0 = _mm_sub_ps(a.m0, b.m0);
-    ret.m1 = _mm_sub_ps(a.m1, b.m1);
-    ret.m2 = _mm_sub_ps(a.m2, b.m2);
-    ret.m3 = _mm_sub_ps(a.m3, b.m3);
+pure_fn mat4 sub_mat4(const mat4 a, const mat4 b) {
+    mat4 ret;
+    ret.b0 = _mm_sub_ps(a.b0, b.b0);
+    ret.b1 = _mm_sub_ps(a.b1, b.b1);
+    ret.b2 = _mm_sub_ps(a.b2, b.b2);
+    ret.b3 = _mm_sub_ps(a.b3, b.b3);
     return ret;
 }
 
 /// @brief Multiply a 4x4 matrix by a scalar.
-pure_fn rmat4 scal_mul_rmat4(const rmat4 a, const float b) {
+pure_fn mat4 scal_mul_mat4(const mat4 a, const float b) {
     __m128 b_vec = _mm_set_ps1(b);
-    rmat4 ret;
-    ret.m0 = _mm_mul_ps(a.m0, b_vec);
-    ret.m1 = _mm_mul_ps(a.m1, b_vec);
-    ret.m2 = _mm_mul_ps(a.m2, b_vec);
-    ret.m3 = _mm_mul_ps(a.m3, b_vec);
+    mat4 ret;
+    ret.b0 = _mm_mul_ps(a.b0, b_vec);
+    ret.b1 = _mm_mul_ps(a.b1, b_vec);
+    ret.b2 = _mm_mul_ps(a.b2, b_vec);
+    ret.b3 = _mm_mul_ps(a.b3, b_vec);
     return ret;
 }
 
 /// @brief Transpose a 4x4 matrix.
-pure_fn rmat4 trans_rmat4(const rmat4 a) {
-    __m128 _Tmp3, _Tmp2, _Tmp1, _Tmp0;
-    _Tmp0   = _mm_shuffle_ps(a.m0, a.m1, 0x44);
-    _Tmp2   = _mm_shuffle_ps(a.m0, a.m1, 0xEE);
-    _Tmp1   = _mm_shuffle_ps(a.m2, a.m3, 0x44);
-    _Tmp3   = _mm_shuffle_ps(a.m2, a.m3, 0xEE);
-
-    rmat4 ret;
-    ret.m0 = _mm_shuffle_ps(_Tmp0, _Tmp1, 0x88);
-    ret.m1 = _mm_shuffle_ps(_Tmp0, _Tmp1, 0xDD);
-    ret.m2 = _mm_shuffle_ps(_Tmp2, _Tmp3, 0x88);
-    ret.m3 = _mm_shuffle_ps(_Tmp2, _Tmp3, 0xDD);
+pure_fn mat4 trans_mat4(const mat4 a) {
+    mat4 ret;
+    ret.b0 = _mm_permute_mac(a.b0, _MM_SHUFFLE(3, 1, 2, 0));
+    ret.b1 = _mm_permute_mac(a.b2, _MM_SHUFFLE(3, 1, 2, 0));
+    ret.b2 = _mm_permute_mac(a.b1, _MM_SHUFFLE(3, 1, 2, 0));
+    ret.b3 = _mm_permute_mac(a.b3, _MM_SHUFFLE(3, 1, 2, 0));
     return ret;
 }
 
-/// @brief Compute the determinant of a 4x4 matrix.
-pure_fn float det_rmat4(const rmat4 a) {
-    // det = 
-    // (a0b1 - a1b0)(c2d3 - c3d2) +
-    // (a1b2 - a2b1)(c0d3 - c3d0) +
-    // (a2b0 - a0b2)(c1d3 - c3d1) +
-    // (a3b1 - a1b3)(c0d2 - c3d0) +
-    // (a0b3 - a3b0)(c1d2 - c2d1) +
-    // (a2b3 - a3b2)(c0d1 - c1d0)
-    // ( C0  -  C1 )( C2  -  C3 )
-    float first_4 = _mm_cvtss_f32(_mm_dp_ps(
-        _mm_sub_ps(
-            _mm_mul_ps(a.m0, _mm_permute_mac(a.m1, _MM_SHUFFLE(1, 0, 2, 1))),
-            _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(1, 0, 2, 1)), a.m1)
-        ),
-        _mm_sub_ps(
-            _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(0, 1, 0, 2)), _mm_permute_mac(a.m3, _MM_SHUFFLE(2, 3, 3, 3))),
-            _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(2, 3, 3, 3)), _mm_permute_mac(a.m3, _MM_SHUFFLE(0, 1, 0, 2)))
-        ),
-        0b11110001
-    ));
-    float last_2 = _mm_cvtss_f32(_mm_dp_ps(
-        _mm_sub_ps(
-            _mm_mul_ps(a.m0, _mm_permute_mac(a.m1, _MM_SHUFFLE(0, 3, 0, 3))),
-            _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(0, 3, 0, 3)), a.m1)
-        ),
-        _mm_sub_ps(
-            _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(0, 0, 0, 1)), _mm_permute_mac(a.m3, _MM_SHUFFLE(0, 1, 0, 2))),
-            _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(0, 1, 0, 2)), _mm_permute_mac(a.m3, _MM_SHUFFLE(0, 0, 0, 1)))
-        ),
-        0b001010001
-    ));
-    return first_4 + last_2;
-}
-
 /// @brief Multiply a 4-vector by a 4x4 matrix.
-pure_fn vec4 mul_vec4_rmat4(const vec4 a, const rmat4 b) {
-    __m128 _Tmp3, _Tmp2, _Tmp1, _Tmp0;                                
-    _Tmp0   = _mm_shuffle_ps(b.m0, b.m1, 0x44);
-    _Tmp2   = _mm_shuffle_ps(b.m0, b.m1, 0xEE);
-    _Tmp1   = _mm_shuffle_ps(b.m2, b.m3, 0x44);
-    _Tmp3   = _mm_shuffle_ps(b.m2, b.m3, 0xEE);
-    return create_vec4(
-        _mm_cvtss_f32(_mm_dp_ps(a, _mm_shuffle_ps(_Tmp0, _Tmp1, 0x88), 0b11110001)),
-        _mm_cvtss_f32(_mm_dp_ps(a, _mm_shuffle_ps(_Tmp0, _Tmp1, 0xDD), 0b11110001)),
-        _mm_cvtss_f32(_mm_dp_ps(a, _mm_shuffle_ps(_Tmp2, _Tmp3, 0x88), 0b11110001)),
-        _mm_cvtss_f32(_mm_dp_ps(a, _mm_shuffle_ps(_Tmp2, _Tmp3, 0xDD), 0b11110001))
+pure_fn vec4 mul_vec4_mat4(const vec4 a, const mat4 b) {
+    __m128 a_0011 = _mm_permute_mac(a, _MM_SHUFFLE(1, 1, 0, 0));
+    __m128 a_2233 = _mm_permute_mac(a, _MM_SHUFFLE(3, 3, 2, 2));
+    __m128 tmp1 = _mm_fma_mac(
+        a_0011, b.b0,
+        _mm_mul_ps(a_2233, b.b2)
+    );
+    __m128 tmp2 = _mm_fma_mac(
+        a_0011, b.b1,
+        _mm_mul_ps(a_2233, b.b3)
+    );
+    return _mm_hadd_ps(
+        _mm_permute_mac(tmp1, _MM_SHUFFLE(3, 1, 2, 0)),
+        _mm_permute_mac(tmp2, _MM_SHUFFLE(3, 1, 2, 0))
     );
 }
 
 /// @brief Multiply a 4x4 matrix by a 4-vector.
-pure_fn vec4 mul_rmat4_vec4(const rmat4 a, const vec4 b) {
-    return create_vec4(
-        _mm_cvtss_f32(_mm_dp_ps(a.m0, b, 0b11110001)),
-        _mm_cvtss_f32(_mm_dp_ps(a.m1, b, 0b11110001)),
-        _mm_cvtss_f32(_mm_dp_ps(a.m2, b, 0b11110001)),
-        _mm_cvtss_f32(_mm_dp_ps(a.m3, b, 0b11110001))
+pure_fn vec4 mul_mat4_vec4(const mat4 a, const vec4 b) {
+    __m128 b0101 = _mm_movelh_ps(b, b);
+    __m128 b2323 = _mm_movehl_ps(b, b);
+    
+    return _mm_hadd_ps(
+        _mm_fma_mac(
+            b0101, a.b0,
+            _mm_mul_ps(b2323, a.b1)
+        ),
+        _mm_fma_mac(
+            b0101, a.b2,
+            _mm_mul_ps(b2323, a.b3)
+        )
     );
 }
 
 /// @brief Multiply two 4x4 matrices.
-pure_fn rmat4 mul_rmat4(const rmat4 a, const rmat4 b) {
-    rmat4 ret;
-    ret.m0 = _mm_fma_mac(
-        _mm_permute_mac(a.m0, _MM_SHUFFLE(0, 0, 0, 0)), b.m0,
+pure_fn mat4 mul_mat4(const mat4 a, const mat4 b) {
+    __m128 aperm3 = _mm_permute_mac(a.b1, _MM_SHUFFLE(2, 2, 1, 1));
+    __m128 aperm2 = _mm_permute_mac(a.b1, _MM_SHUFFLE(3, 3, 0, 0));
+    __m128 aperm1 = _mm_permute_mac(a.b0, _MM_SHUFFLE(2, 2, 1, 1));
+    __m128 aperm0 = _mm_permute_mac(a.b0, _MM_SHUFFLE(3, 3, 0, 0));
+    
+    mat4 ret;
+    ret.b0 = _mm_fma_mac(
+        aperm0, b.b0,
         _mm_fma_mac(
-            _mm_permute_mac(a.m0, _MM_SHUFFLE(1, 1, 1, 1)), b.m1,
+            aperm1, _mm_permute_mac(b.b0, _MM_SHUFFLE(1, 0, 3, 2)),
             _mm_fma_mac(
-                _mm_permute_mac(a.m0, _MM_SHUFFLE(2, 2, 2, 2)), b.m2,
-                _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(3, 3, 3, 3)), b.m3)
+                aperm2, b.b2,
+                _mm_mul_ps(aperm3, _mm_permute_mac(b.b2, _MM_SHUFFLE(1, 0, 3, 2)))
             )
         )
     );
-    ret.m1 = _mm_fma_mac(
-        _mm_permute_mac(a.m1, _MM_SHUFFLE(0, 0, 0, 0)), b.m0,
+    ret.b1 = _mm_fma_mac(
+        aperm0, b.b1,
         _mm_fma_mac(
-            _mm_permute_mac(a.m1, _MM_SHUFFLE(1, 1, 1, 1)), b.m1,
+            aperm1, _mm_permute_mac(b.b1, _MM_SHUFFLE(1, 0, 3, 2)),
             _mm_fma_mac(
-                _mm_permute_mac(a.m1, _MM_SHUFFLE(2, 2, 2, 2)), b.m2,
-                _mm_mul_ps(_mm_permute_mac(a.m1, _MM_SHUFFLE(3, 3, 3, 3)), b.m3)
+                aperm2, b.b3,
+                _mm_mul_ps(aperm3, _mm_permute_mac(b.b3, _MM_SHUFFLE(1, 0, 3, 2)))
             )
         )
     );
-    ret.m2 = _mm_fma_mac(
-        _mm_permute_mac(a.m2, _MM_SHUFFLE(0, 0, 0, 0)), b.m0,
+    aperm3 = _mm_permute_mac(a.b3, _MM_SHUFFLE(2, 2, 1, 1));
+    aperm2 = _mm_permute_mac(a.b3, _MM_SHUFFLE(3, 3, 0, 0));
+    aperm1 = _mm_permute_mac(a.b2, _MM_SHUFFLE(2, 2, 1, 1));
+    aperm0 = _mm_permute_mac(a.b2, _MM_SHUFFLE(3, 3, 0, 0));
+    
+    ret.b2 = _mm_fma_mac(
+        aperm0, b.b0,
         _mm_fma_mac(
-            _mm_permute_mac(a.m2, _MM_SHUFFLE(1, 1, 1, 1)), b.m1,
+            aperm1, _mm_permute_mac(b.b0, _MM_SHUFFLE(1, 0, 3, 2)),
             _mm_fma_mac(
-                _mm_permute_mac(a.m2, _MM_SHUFFLE(2, 2, 2, 2)), b.m2,
-                _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(3, 3, 3, 3)), b.m3)
+                aperm2, b.b2,
+                _mm_mul_ps(aperm3, _mm_permute_mac(b.b2, _MM_SHUFFLE(1, 0, 3, 2)))
             )
         )
     );
-    ret.m3 = _mm_fma_mac(
-        _mm_permute_mac(a.m3, _MM_SHUFFLE(0, 0, 0, 0)), b.m0,
+    ret.b3 = _mm_fma_mac(
+        aperm0, b.b1,
         _mm_fma_mac(
-            _mm_permute_mac(a.m3, _MM_SHUFFLE(1, 1, 1, 1)), b.m1,
+            aperm1, _mm_permute_mac(b.b1, _MM_SHUFFLE(1, 0, 3, 2)),
             _mm_fma_mac(
-                _mm_permute_mac(a.m3, _MM_SHUFFLE(2, 2, 2, 2)), b.m2,
-                _mm_mul_ps(_mm_permute_mac(a.m3, _MM_SHUFFLE(3, 3, 3, 3)), b.m3)
+                aperm2, b.b3,
+                _mm_mul_ps(aperm3, _mm_permute_mac(b.b3, _MM_SHUFFLE(1, 0, 3, 2)))
             )
         )
     );
+
     return ret;
 }
 
-/// @brief Compute the cofactor of a 4x4 matrix.
-pure_fn rmat4 cofactor_rmat4(const rmat4 a) {
-    rmat4 ret;
-    // determinants (the columns of the determinant):
-    // 1 -> 0 1 - 1 0
-    // 2 -> 0 2 - 2 0
-    // 3 -> 0 3 - 3 0
-    // 4 -> 1 2 - 2 1
-    // 5 -> 1 3 - 3 1
-    // 6 -> 2 3 - 3 2   
-    // 
-    // first 3 columns are the adjacent row "id" and
-    // last three are the determinants to mulitply them with
-    // + - +-   + - +-
-    // 3 1 2    4 6 5
-    // 0 2 3    6 3 2
-    // 3 0 1    1 5 3
-    // 0 1 2    4 2 1
-    //          A B C
-    // block (3030, A) will be _mm_addsub_ps
-    __m128 dets_A = _mm_fms_mac(
-        _mm_permute_mac(a.m0, _MM_SHUFFLE(1, 0, 2, 1)), _mm_permute_mac(a.m1, _MM_SHUFFLE(2, 1, 3, 2)),
-        _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(2, 1, 3, 2)), _mm_permute_mac(a.m1, _MM_SHUFFLE(1, 0, 2, 1)))
+/// @brief Compute the determinant of a 4x4 matrix.
+pure_fn float det_mat4(const mat4 a) {
+    // det =
+    // (a0a3 - a1a2)(c0c3 - c1c2) +
+    // (b0b3 - b1b2)(d0d3 - d1d2) +
+    // ( A0  -  B0 )( A1  -  B1 )
+    // (a0b3 - a2b1)(c1d2 - c3d0) +
+    // (a1b2 - a3b0)(c0d3 - c2d1) +
+    // (a2b0 - a0b2)(c1d3 - c3d1) +
+    // (a3b1 - a1b3)(c0d2 - c2d0)
+    // ( C0  -  C1 )( C2  -  C3 )
+
+    __m128 dets = _mm_hsub_ps(
+        _mm_mul_ps(_mm_movelh_ps(a.b0, a.b1), _mm_shuffle_ps(a.b0, a.b1, _MM_SHUFFLE(2, 3, 2, 3))),
+        _mm_mul_ps(_mm_movelh_ps(a.b2, a.b3), _mm_shuffle_ps(a.b2, a.b3, _MM_SHUFFLE(2, 3, 2, 3)))
     );
-    __m128 dets_B = _mm_fms_mac(
-        _mm_permute_mac(a.m0, _MM_SHUFFLE(0, 1, 0, 2)), _mm_permute_mac(a.m1, _MM_SHUFFLE(2, 3, 3, 3)),
-        _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(2, 3, 3, 3)), _mm_permute_mac(a.m1, _MM_SHUFFLE(0, 1, 0, 2)))
-    );
-    __m128 dets_C = _mm_blend_ps(
-        _mm_permute_mac(dets_A, _MM_SHUFFLE(2, 0, 0, 0)),
-        _mm_permute_mac(dets_B, _MM_SHUFFLE(0, 1, 3, 2)),
-        0b0111
-    );
-    // C - B +- A
-    ret.m3 = _mm_addsub_ps(
+    printf("%f %f\n",_mm_cvtss_f32(_mm_dp_ps(dets, _mm_permute_mac(dets, _MM_SHUFFLE(0, 1, 2, 3)), 0b00110001)),_mm_cvtss_f32(_mm_dp_ps(
         _mm_fms_mac(
-            _mm_permute_mac(a.m2, _MM_SHUFFLE(2, 1, 3, 2)), dets_C,
-            _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(1, 0, 2, 1)), dets_B)
+            a.b0, _mm_permute_mac(a.b1, _MM_SHUFFLE(1, 0, 2, 3)),
+            _mm_mul_ps(_mm_permute_mac(a.b0, _MM_SHUFFLE(1, 0, 3, 2)), _mm_permute_mac(a.b1, _MM_SHUFFLE(3, 2, 0, 1)))
         ),
-        _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(0, 3, 0, 3)), dets_A)
+        _mm_fms_mac(
+            _mm_permute_mac(a.b2, _MM_SHUFFLE(0, 1, 0, 1)), _mm_permute_mac(a.b3, _MM_SHUFFLE(2, 3, 3, 2)),
+            _mm_mul_ps(_mm_permute_mac(a.b2, _MM_SHUFFLE(2, 3, 2, 3)), _mm_permute_mac(a.b3, _MM_SHUFFLE(0, 1, 1, 0)))
+        ),
+        0b11110001
+    )));
+    return _mm_cvtss_f32(_mm_dp_ps(dets, _mm_permute_mac(dets, _MM_SHUFFLE(0, 1, 2, 3)), 0b00110001)) +
+        _mm_cvtss_f32(_mm_dp_ps(
+        _mm_fms_mac(
+            a.b0, _mm_permute_mac(a.b1, _MM_SHUFFLE(1, 0, 2, 3)),
+            _mm_mul_ps(_mm_permute_mac(a.b0, _MM_SHUFFLE(1, 0, 3, 2)), _mm_permute_mac(a.b1, _MM_SHUFFLE(3, 2, 0, 1)))
+        ),
+        _mm_fms_mac(
+            _mm_permute_mac(a.b2, _MM_SHUFFLE(0, 1, 0, 1)), _mm_permute_mac(a.b3, _MM_SHUFFLE(2, 3, 3, 2)),
+            _mm_mul_ps(_mm_permute_mac(a.b2, _MM_SHUFFLE(2, 3, 2, 3)), _mm_permute_mac(a.b3, _MM_SHUFFLE(0, 1, 1, 0)))
+        ),
+        0b11110001
+    ));
+}
+
+/// @brief Compute the cofactor of a 4x4 matrix.
+pure_fn mat4 cofactor_mat4(const mat4 a) {
+    mat4 ret;
+    // determinants (the ids of the determinants (AB - AB)):
+    // 2 -> 0 2 - 2 0
+    // 3 -> 0 3 - 2 1
+    // 4 -> 1 2 - 3 0
+    // 5 -> 1 3 - 3 1
+    // 1 -> a0a3 - a1a2
+    // 6 -> b0b3 - b1b2
+    
+    // For cofactor of Block A:
+    //  Dets    blocks
+    // + - +    b b a
+    // 4 5 6    3 2 3
+    // 3 2 -6   2 3 2
+    // 5 4 -6   0 1 1
+    // 2 3 6    1 0 0
+    // A B C
+
+    // For cofactor of Block B:
+    //  Dets    blocks
+    // + - +    a a b
+    // 5 3 1    2 3 2
+    // 2 4 -1   3 2 3
+    // 3 5 -1   1 0 0
+    // 4 2 1    0 1 1
+
+
+    __m128 XOR_MASK = _mm_set_ps(0.0f, -0.0f, -0.0f, 0.0f);
+    __m128 dets = _mm_hsub_ps(
+        _mm_mul_ps(_mm_movelh_ps(a.b2, a.b3), _mm_shuffle_ps(a.b2, a.b3, _MM_SHUFFLE(2, 3, 2, 3))),
+        _mm_mul_ps(_mm_movelh_ps(a.b0, a.b1), _mm_shuffle_ps(a.b0, a.b1, _MM_SHUFFLE(2, 3, 2, 3)))
     );
-    // B - (C +- A)
-    ret.m2 = _mm_fms_mac(
-        _mm_permute_mac(a.m3, _MM_SHUFFLE(1, 0, 2, 1)), dets_B,
-        _mm_fmas_mac(
-            _mm_permute_mac(a.m3, _MM_SHUFFLE(2, 1, 3, 2)), dets_C,
-            _mm_mul_ps(_mm_permute_mac(a.m3, _MM_SHUFFLE(0, 3, 0, 3)), dets_A)
+
+    __m128 dets_B = _mm_fms_mac(
+        _mm_permute_mac(a.b2, _MM_SHUFFLE(0, 1, 0, 1)), _mm_permute_mac(a.b3, _MM_SHUFFLE(3, 2, 2, 3)),
+        _mm_mul_ps(_mm_permute_mac(a.b2, _MM_SHUFFLE(2, 3, 2, 3)), _mm_permute_mac(a.b3, _MM_SHUFFLE(1, 0, 0, 1)))
+    );
+    
+    ret.b0 = _mm_fma_mac(
+        _mm_permute_mac(a.b1, _MM_SHUFFLE(1, 0, 2, 3)), _mm_permute_mac(dets_B, _MM_SHUFFLE(1, 0, 3, 2)),
+        _mm_fms_mac(
+            _mm_permute_mac(a.b0, _MM_SHUFFLE(0, 1, 2, 3)), _mm_xor_ps(_mm_permute_mac(dets, _MM_SHUFFLE(1, 1, 1, 1)), XOR_MASK),
+            _mm_mul_ps(_mm_permute_mac(a.b1, _MM_SHUFFLE(0, 1, 3, 2)), dets_B)
+        )
+    );
+    ret.b1 = _mm_fma_mac(
+        _mm_permute_mac(a.b0, _MM_SHUFFLE(0, 1, 3, 2)), _mm_permute_mac(dets_B, _MM_SHUFFLE(2, 3, 1, 0)),
+        _mm_fms_mac(
+            _mm_permute_mac(a.b1, _MM_SHUFFLE(0, 1, 2, 3)), _mm_xor_ps(_mm_permute_mac(dets, _MM_SHUFFLE(0, 0, 0, 0)), XOR_MASK),
+            _mm_mul_ps(_mm_permute_mac(a.b0, _MM_SHUFFLE(1, 0, 2, 3)), _mm_permute_mac(dets_B, _MM_SHUFFLE(1, 0, 2, 3)))
         )
     );
 
-    // calulate determinants again, but with m2, m3
-    dets_A = _mm_fms_mac(
-        _mm_permute_mac(a.m2, _MM_SHUFFLE(1, 0, 2, 1)), _mm_permute_mac(a.m3, _MM_SHUFFLE(2, 1, 3, 2)),
-        _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(2, 1, 3, 2)), _mm_permute_mac(a.m3, _MM_SHUFFLE(1, 0, 2, 1)))
-    );
+    // FOR BLOCKS C & D
+
     dets_B = _mm_fms_mac(
-        _mm_permute_mac(a.m2, _MM_SHUFFLE(0, 1, 0, 2)), _mm_permute_mac(a.m3, _MM_SHUFFLE(2, 3, 3, 3)),
-        _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(2, 3, 3, 3)), _mm_permute_mac(a.m3, _MM_SHUFFLE(0, 1, 0, 2)))
+        _mm_permute_mac(a.b0, _MM_SHUFFLE(0, 1, 0, 1)), _mm_permute_mac(a.b1, _MM_SHUFFLE(3, 2, 2, 3)),
+        _mm_mul_ps(_mm_permute_mac(a.b0, _MM_SHUFFLE(2, 3, 2, 3)), _mm_permute_mac(a.b1, _MM_SHUFFLE(1, 0, 0, 1)))
     );
-    dets_C = _mm_blend_ps(
-        _mm_permute_mac(dets_A, _MM_SHUFFLE(2, 0, 0, 0)),
-        _mm_permute_mac(dets_B, _MM_SHUFFLE(0, 1, 3, 2)),
-        0b0111
-    );
-    // C - B +- A
-    ret.m1 = _mm_addsub_ps(
+    
+    ret.b2 = _mm_fma_mac(
+        _mm_permute_mac(a.b3, _MM_SHUFFLE(1, 0, 2, 3)), _mm_permute_mac(dets_B, _MM_SHUFFLE(1, 0, 3, 2)),
         _mm_fms_mac(
-            _mm_permute_mac(a.m0, _MM_SHUFFLE(2, 1, 3, 2)), dets_C,
-            _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(1, 0, 2, 1)), dets_B)
-        ),
-        _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(0, 3, 0, 3)), dets_A)
+            _mm_permute_mac(a.b2, _MM_SHUFFLE(0, 1, 2, 3)), _mm_xor_ps(_mm_permute_mac(dets, _MM_SHUFFLE(3, 3, 3, 3)), XOR_MASK),
+            _mm_mul_ps(_mm_permute_mac(a.b3, _MM_SHUFFLE(0, 1, 3, 2)), dets_B)
+        )
     );
-    // B - (C +- A)
-    ret.m0 = _mm_fms_mac(
-        _mm_permute_mac(a.m1, _MM_SHUFFLE(1, 0, 2, 1)), dets_B,
-        _mm_fmas_mac(
-            _mm_permute_mac(a.m1, _MM_SHUFFLE(2, 1, 3, 2)), dets_C,
-            _mm_mul_ps(_mm_permute_mac(a.m1, _MM_SHUFFLE(0, 3, 0, 3)), dets_A)
+    ret.b3 = _mm_fma_mac(
+        _mm_permute_mac(a.b2, _MM_SHUFFLE(0, 1, 3, 2)), _mm_permute_mac(dets_B, _MM_SHUFFLE(2, 3, 1, 0)),
+        _mm_fms_mac(
+            _mm_permute_mac(a.b3, _MM_SHUFFLE(0, 1, 2, 3)), _mm_xor_ps(_mm_permute_mac(dets, _MM_SHUFFLE(2, 2, 2, 2)), XOR_MASK),
+            _mm_mul_ps(_mm_permute_mac(a.b2, _MM_SHUFFLE(1, 0, 2, 3)), _mm_permute_mac(dets_B, _MM_SHUFFLE(1, 0, 2, 3)))
         )
     );
 
@@ -248,225 +276,204 @@ pure_fn rmat4 cofactor_rmat4(const rmat4 a) {
 }
 
 /// @brief Compute the adjoint of a 4x4 matrix.
-pure_fn rmat4 adj_rmat4(const rmat4 a) {
-    // for the algorithm, refer to cofactor_mat4. adj_mat4 simply
-    // uses that algorithm and then transposes that matrix
-    rmat4 ret;
-    
-    __m128 dets_A = _mm_fms_mac(
-        _mm_permute_mac(a.m0, _MM_SHUFFLE(1, 0, 2, 1)), _mm_permute_mac(a.m1, _MM_SHUFFLE(2, 1, 3, 2)),
-        _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(2, 1, 3, 2)), _mm_permute_mac(a.m1, _MM_SHUFFLE(1, 0, 2, 1)))
+pure_fn mat4 adj_mat4(const mat4 a) {
+    // Look at cofactor_mat4 for the algorithm specifics.
+    // adj_mat4 simply adds transposition within the _MM_SHUFFLEs
+    // which gives the same number of operations as cofactor_mat4
+    // by avoiding any special transposition step.
+    mat4 ret;
+
+    __m128 XOR_MASK = _mm_set_ps(0.0f, -0.0f, -0.0f, 0.0f);
+    __m128 dets = _mm_hsub_ps(
+        _mm_mul_ps(_mm_movelh_ps(a.b2, a.b3), _mm_shuffle_ps(a.b2, a.b3, _MM_SHUFFLE(2, 3, 2, 3))),
+        _mm_mul_ps(_mm_movelh_ps(a.b0, a.b1), _mm_shuffle_ps(a.b0, a.b1, _MM_SHUFFLE(2, 3, 2, 3)))
     );
+
     __m128 dets_B = _mm_fms_mac(
-        _mm_permute_mac(a.m0, _MM_SHUFFLE(0, 1, 0, 2)), _mm_permute_mac(a.m1, _MM_SHUFFLE(2, 3, 3, 3)),
-        _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(2, 3, 3, 3)), _mm_permute_mac(a.m1, _MM_SHUFFLE(0, 1, 0, 2)))
+        _mm_permute_mac(a.b2, _MM_SHUFFLE(0, 0, 1, 1)), _mm_permute_mac(a.b3, _MM_SHUFFLE(3, 2, 2, 3)),
+        _mm_mul_ps(_mm_permute_mac(a.b2, _MM_SHUFFLE(2, 2, 3, 3)), _mm_permute_mac(a.b3, _MM_SHUFFLE(1, 0, 0, 1)))
     );
-    __m128 dets_C = _mm_blend_ps(
-        _mm_permute_mac(dets_A, _MM_SHUFFLE(2, 0, 0, 0)),
-        _mm_permute_mac(dets_B, _MM_SHUFFLE(0, 1, 3, 2)),
-        0b0111
-    );
-    // C - B +- A
-    ret.m3 = _mm_addsub_ps(
+    
+    ret.b0 = _mm_fma_mac(
+        _mm_permute_mac(a.b1, _MM_SHUFFLE(1, 2, 0, 3)), _mm_permute_mac(dets_B, _MM_SHUFFLE(2, 3, 0, 1)),
         _mm_fms_mac(
-            _mm_permute_mac(a.m2, _MM_SHUFFLE(2, 1, 3, 2)), dets_C,
-            _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(1, 0, 2, 1)), dets_B)
-        ),
-        _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(0, 3, 0, 3)), dets_A)
+            _mm_permute_mac(a.b0, _MM_SHUFFLE(0, 2, 1, 3)), _mm_xor_ps(_mm_permute_mac(dets, _MM_SHUFFLE(1, 1, 1, 1)), XOR_MASK),
+            _mm_mul_ps(_mm_permute_mac(a.b1, _MM_SHUFFLE(0, 3, 1, 2)), dets_B)
+        )
     );
-    // B - (C +- A)
-    ret.m2 = _mm_fms_mac(
-        _mm_permute_mac(a.m3, _MM_SHUFFLE(1, 0, 2, 1)), dets_B,
-        _mm_fmas_mac(
-            _mm_permute_mac(a.m3, _MM_SHUFFLE(2, 1, 3, 2)), dets_C,
-            _mm_mul_ps(_mm_permute_mac(a.m3, _MM_SHUFFLE(0, 3, 0, 3)), dets_A)
+    ret.b2 = _mm_fma_mac(
+        _mm_permute_mac(a.b0, _MM_SHUFFLE(0, 3, 1, 2)), _mm_permute_mac(dets_B, _MM_SHUFFLE(1, 2, 3, 0)),
+        _mm_fms_mac(
+            _mm_permute_mac(a.b1, _MM_SHUFFLE(0, 2, 1, 3)), _mm_xor_ps(_mm_permute_mac(dets, _MM_SHUFFLE(0, 0, 0, 0)), XOR_MASK),
+            _mm_mul_ps(_mm_permute_mac(a.b0, _MM_SHUFFLE(1, 2, 0, 3)), _mm_permute_mac(dets_B, _MM_SHUFFLE(2, 1, 0, 3)))
         )
     );
 
-    // calulate determinants again, but with m2, m3
-    dets_A = _mm_fms_mac(
-        _mm_permute_mac(a.m2, _MM_SHUFFLE(1, 0, 2, 1)), _mm_permute_mac(a.m3, _MM_SHUFFLE(2, 1, 3, 2)),
-        _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(2, 1, 3, 2)), _mm_permute_mac(a.m3, _MM_SHUFFLE(1, 0, 2, 1)))
-    );
+    // FOR BLOCKS C & D
+
     dets_B = _mm_fms_mac(
-        _mm_permute_mac(a.m2, _MM_SHUFFLE(0, 1, 0, 2)), _mm_permute_mac(a.m3, _MM_SHUFFLE(2, 3, 3, 3)),
-        _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(2, 3, 3, 3)), _mm_permute_mac(a.m3, _MM_SHUFFLE(0, 1, 0, 2)))
+        _mm_permute_mac(a.b0, _MM_SHUFFLE(0, 0, 1, 1)), _mm_permute_mac(a.b1, _MM_SHUFFLE(3, 2, 2, 3)),
+        _mm_mul_ps(_mm_permute_mac(a.b0, _MM_SHUFFLE(2, 2, 3, 3)), _mm_permute_mac(a.b1, _MM_SHUFFLE(1, 0, 0, 1)))
     );
-    dets_C = _mm_blend_ps(
-        _mm_permute_mac(dets_A, _MM_SHUFFLE(2, 0, 0, 0)),
-        _mm_permute_mac(dets_B, _MM_SHUFFLE(0, 1, 3, 2)),
-        0b0111
-    );
-    // C - B +- A
-    ret.m1 = _mm_addsub_ps(
+    
+    ret.b1 = _mm_fma_mac(
+        _mm_permute_mac(a.b3, _MM_SHUFFLE(1, 2, 0, 3)), _mm_permute_mac(dets_B, _MM_SHUFFLE(2, 3, 0, 1)),
         _mm_fms_mac(
-            _mm_permute_mac(a.m0, _MM_SHUFFLE(2, 1, 3, 2)), dets_C,
-            _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(1, 0, 2, 1)), dets_B)
-        ),
-        _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(0, 3, 0, 3)), dets_A)
-    );
-    // B - (C +- A)
-    ret.m0 = _mm_fms_mac(
-        _mm_permute_mac(a.m1, _MM_SHUFFLE(1, 0, 2, 1)), dets_B,
-        _mm_fmas_mac(
-            _mm_permute_mac(a.m1, _MM_SHUFFLE(2, 1, 3, 2)), dets_C,
-            _mm_mul_ps(_mm_permute_mac(a.m1, _MM_SHUFFLE(0, 3, 0, 3)), dets_A)
+            _mm_permute_mac(a.b2, _MM_SHUFFLE(0, 2, 1, 3)), _mm_xor_ps(_mm_permute_mac(dets, _MM_SHUFFLE(3, 3, 3, 3)), XOR_MASK),
+            _mm_mul_ps(_mm_permute_mac(a.b3, _MM_SHUFFLE(0, 3, 1, 2)), dets_B)
         )
     );
-
-    // reuse dets_A, dets_B, dets_C as temp variables
-    __m128 _Tmp3;
-    _Tmp3   = _mm_shuffle_ps(ret.m2, ret.m3, 0xEE);
-    dets_A   = _mm_shuffle_ps(ret.m0, ret.m1, 0xEE);
-    dets_B   = _mm_shuffle_ps(ret.m2, ret.m3, 0x44);
-    dets_C   = _mm_shuffle_ps(ret.m0, ret.m1, 0x44);
-
-    ret.m0 = _mm_shuffle_ps(dets_C, dets_B, 0x88);
-    ret.m1 = _mm_shuffle_ps(dets_C, dets_B, 0xDD);
-    ret.m2 = _mm_shuffle_ps(dets_A, _Tmp3, 0x88);
-    ret.m3 = _mm_shuffle_ps(dets_A, _Tmp3, 0xDD);
+    ret.b3 = _mm_fma_mac(
+        _mm_permute_mac(a.b2, _MM_SHUFFLE(0, 3, 1, 2)), _mm_permute_mac(dets_B, _MM_SHUFFLE(1, 2, 3, 0)),
+        _mm_fms_mac(
+            _mm_permute_mac(a.b3, _MM_SHUFFLE(0, 2, 1, 3)), _mm_xor_ps(_mm_permute_mac(dets, _MM_SHUFFLE(2, 2, 2, 2)), XOR_MASK),
+            _mm_mul_ps(_mm_permute_mac(a.b2, _MM_SHUFFLE(1, 2, 0, 3)), _mm_permute_mac(dets_B, _MM_SHUFFLE(2, 1, 0, 3)))
+        )
+    );
 
     return ret;
 }
 
 /// @brief Compute the inverse of a 4x4 matrix.
-pure_fn rmat4 inv_rmat4(const rmat4 a) {
-    rmat4 ret;
-    
-    __m128 dets_A = _mm_fms_mac(
-        _mm_permute_mac(a.m0, _MM_SHUFFLE(1, 0, 2, 1)), _mm_permute_mac(a.m1, _MM_SHUFFLE(2, 1, 3, 2)),
-        _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(2, 1, 3, 2)), _mm_permute_mac(a.m1, _MM_SHUFFLE(1, 0, 2, 1)))
+pure_fn mat4 inv_mat4(const mat4 a) {
+    // Look at cofactor_mat4 for the algorithm specifics.
+    // inv_mat4 simply adds transposition within the _MM_SHUFFLEs
+    // which avoids any special transposition step, and then
+    // divides by the determinant, calculated with a dot product
+    mat4 ret;
+
+    __m128 XOR_MASK = _mm_set_ps(0.0f, -0.0f, -0.0f, 0.0f);
+    __m128 dets = _mm_hsub_ps(
+        _mm_mul_ps(_mm_movelh_ps(a.b2, a.b3), _mm_shuffle_ps(a.b2, a.b3, _MM_SHUFFLE(2, 3, 2, 3))),
+        _mm_mul_ps(_mm_movelh_ps(a.b0, a.b1), _mm_shuffle_ps(a.b0, a.b1, _MM_SHUFFLE(2, 3, 2, 3)))
     );
+
     __m128 dets_B = _mm_fms_mac(
-        _mm_permute_mac(a.m0, _MM_SHUFFLE(0, 1, 0, 2)), _mm_permute_mac(a.m1, _MM_SHUFFLE(2, 3, 3, 3)),
-        _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(2, 3, 3, 3)), _mm_permute_mac(a.m1, _MM_SHUFFLE(0, 1, 0, 2)))
+        _mm_permute_mac(a.b2, _MM_SHUFFLE(0, 0, 1, 1)), _mm_permute_mac(a.b3, _MM_SHUFFLE(3, 2, 2, 3)),
+        _mm_mul_ps(_mm_permute_mac(a.b2, _MM_SHUFFLE(2, 2, 3, 3)), _mm_permute_mac(a.b3, _MM_SHUFFLE(1, 0, 0, 1)))
     );
-    __m128 dets_C = _mm_blend_ps(
-        _mm_permute_mac(dets_A, _MM_SHUFFLE(2, 0, 0, 0)),
-        _mm_permute_mac(dets_B, _MM_SHUFFLE(0, 1, 3, 2)),
-        0b0111
-    );
-    // C - B +- A
-    ret.m3 = _mm_addsub_ps(
+    
+    ret.b0 = _mm_fma_mac(
+        _mm_permute_mac(a.b1, _MM_SHUFFLE(1, 2, 0, 3)), _mm_permute_mac(dets_B, _MM_SHUFFLE(2, 3, 0, 1)),
         _mm_fms_mac(
-            _mm_permute_mac(a.m2, _MM_SHUFFLE(2, 1, 3, 2)), dets_C,
-            _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(1, 0, 2, 1)), dets_B)
-        ),
-        _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(0, 3, 0, 3)), dets_A)
+            _mm_permute_mac(a.b0, _MM_SHUFFLE(0, 2, 1, 3)), _mm_xor_ps(_mm_permute_mac(dets, _MM_SHUFFLE(1, 1, 1, 1)), XOR_MASK),
+            _mm_mul_ps(_mm_permute_mac(a.b1, _MM_SHUFFLE(0, 3, 1, 2)), dets_B)
+        )
     );
-    // B - (C +- A)
-    ret.m2 = _mm_fms_mac(
-        _mm_permute_mac(a.m3, _MM_SHUFFLE(1, 0, 2, 1)), dets_B,
-        _mm_fmas_mac(
-            _mm_permute_mac(a.m3, _MM_SHUFFLE(2, 1, 3, 2)), dets_C,
-            _mm_mul_ps(_mm_permute_mac(a.m3, _MM_SHUFFLE(0, 3, 0, 3)), dets_A)
+    ret.b2 = _mm_fma_mac(
+        _mm_permute_mac(a.b0, _MM_SHUFFLE(0, 3, 1, 2)), _mm_permute_mac(dets_B, _MM_SHUFFLE(1, 2, 3, 0)),
+        _mm_fms_mac(
+            _mm_permute_mac(a.b1, _MM_SHUFFLE(0, 2, 1, 3)), _mm_xor_ps(_mm_permute_mac(dets, _MM_SHUFFLE(0, 0, 0, 0)), XOR_MASK),
+            _mm_mul_ps(_mm_permute_mac(a.b0, _MM_SHUFFLE(1, 2, 0, 3)), _mm_permute_mac(dets_B, _MM_SHUFFLE(2, 1, 0, 3)))
         )
     );
 
-    // calulate determinants again, but with m2, m3
-    dets_A = _mm_fms_mac(
-        _mm_permute_mac(a.m2, _MM_SHUFFLE(1, 0, 2, 1)), _mm_permute_mac(a.m3, _MM_SHUFFLE(2, 1, 3, 2)),
-        _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(2, 1, 3, 2)), _mm_permute_mac(a.m3, _MM_SHUFFLE(1, 0, 2, 1)))
-    );
+    // FOR BLOCKS C & D
+
     dets_B = _mm_fms_mac(
-        _mm_permute_mac(a.m2, _MM_SHUFFLE(0, 1, 0, 2)), _mm_permute_mac(a.m3, _MM_SHUFFLE(2, 3, 3, 3)),
-        _mm_mul_ps(_mm_permute_mac(a.m2, _MM_SHUFFLE(2, 3, 3, 3)), _mm_permute_mac(a.m3, _MM_SHUFFLE(0, 1, 0, 2)))
+        _mm_permute_mac(a.b0, _MM_SHUFFLE(0, 0, 1, 1)), _mm_permute_mac(a.b1, _MM_SHUFFLE(3, 2, 2, 3)),
+        _mm_mul_ps(_mm_permute_mac(a.b0, _MM_SHUFFLE(2, 2, 3, 3)), _mm_permute_mac(a.b1, _MM_SHUFFLE(1, 0, 0, 1)))
     );
-    dets_C = _mm_blend_ps(
-        _mm_permute_mac(dets_A, _MM_SHUFFLE(2, 0, 0, 0)),
-        _mm_permute_mac(dets_B, _MM_SHUFFLE(0, 1, 3, 2)),
-        0b0111
-    );
-    // C - B +- A
-    ret.m1 = _mm_addsub_ps(
+    
+    ret.b1 = _mm_fma_mac(
+        _mm_permute_mac(a.b3, _MM_SHUFFLE(1, 2, 0, 3)), _mm_permute_mac(dets_B, _MM_SHUFFLE(2, 3, 0, 1)),
         _mm_fms_mac(
-            _mm_permute_mac(a.m0, _MM_SHUFFLE(2, 1, 3, 2)), dets_C,
-            _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(1, 0, 2, 1)), dets_B)
-        ),
-        _mm_mul_ps(_mm_permute_mac(a.m0, _MM_SHUFFLE(0, 3, 0, 3)), dets_A)
+            _mm_permute_mac(a.b2, _MM_SHUFFLE(0, 2, 1, 3)), _mm_xor_ps(_mm_permute_mac(dets, _MM_SHUFFLE(3, 3, 3, 3)), XOR_MASK),
+            _mm_mul_ps(_mm_permute_mac(a.b3, _MM_SHUFFLE(0, 3, 1, 2)), dets_B)
+        )
     );
-    // B - (C +- A)
-    ret.m0 = _mm_fms_mac(
-        _mm_permute_mac(a.m1, _MM_SHUFFLE(1, 0, 2, 1)), dets_B,
-        _mm_fmas_mac(
-            _mm_permute_mac(a.m1, _MM_SHUFFLE(2, 1, 3, 2)), dets_C,
-            _mm_mul_ps(_mm_permute_mac(a.m1, _MM_SHUFFLE(0, 3, 0, 3)), dets_A)
+    ret.b3 = _mm_fma_mac(
+        _mm_permute_mac(a.b2, _MM_SHUFFLE(0, 3, 1, 2)), _mm_permute_mac(dets_B, _MM_SHUFFLE(1, 2, 3, 0)),
+        _mm_fms_mac(
+            _mm_permute_mac(a.b3, _MM_SHUFFLE(0, 2, 1, 3)), _mm_xor_ps(_mm_permute_mac(dets, _MM_SHUFFLE(2, 2, 2, 2)), XOR_MASK),
+            _mm_mul_ps(_mm_permute_mac(a.b2, _MM_SHUFFLE(1, 2, 0, 3)), _mm_permute_mac(dets_B, _MM_SHUFFLE(2, 1, 0, 3)))
         )
     );
 
-    // reuse dets_A, dets_B, dets_C as temp variables
-    __m128 inv_det = _mm_rcp_mac(_mm_dp_ps(a.m0, ret.m0, 0b11111111));
-    __m128 _Tmp3;
-    _Tmp3   = _mm_shuffle_ps(ret.m2, ret.m3, 0xEE);
-    dets_A   = _mm_shuffle_ps(ret.m0, ret.m1, 0xEE);
-    dets_B   = _mm_shuffle_ps(ret.m2, ret.m3, 0x44);
-    dets_C   = _mm_shuffle_ps(ret.m0, ret.m1, 0x44);
+    // reuse XOR_MASK to store the inverse determinant
+    XOR_MASK = _mm_rcp_mac(_mm_dp_ps(
+        _mm_movelh_ps(a.b0, a.b1),
+        _mm_shuffle_ps(ret.b0, ret.b2, _MM_SHUFFLE(2, 0, 2, 0)),
+        0b11111111
+    ));
 
-    ret.m0 = _mm_mul_ps(_mm_shuffle_ps(dets_C, dets_B, 0x88), inv_det);
-    ret.m1 = _mm_mul_ps(_mm_shuffle_ps(dets_C, dets_B, 0xDD), inv_det);
-    ret.m2 = _mm_mul_ps(_mm_shuffle_ps(dets_A, _Tmp3, 0x88), inv_det);
-    ret.m3 = _mm_mul_ps(_mm_shuffle_ps(dets_A, _Tmp3, 0xDD), inv_det);
-
+    ret.b0 = _mm_mul_ps(ret.b0, XOR_MASK);
+    ret.b1 = _mm_mul_ps(ret.b1, XOR_MASK);
+    ret.b2 = _mm_mul_ps(ret.b2, XOR_MASK);
+    ret.b3 = _mm_mul_ps(ret.b3, XOR_MASK);
+    
     return ret;
 }
 
+
 /// @brief Compute the square of a 4x4 matrix.
-pure_fn rmat4 sqr_rmat4(const rmat4 a) {
-    rmat4 ret;
-    ret.m0 = _mm_fma_mac(
-        _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m0, 0))), a.m0,
+pure_fn mat4 sqr_mat4(const mat4 a) {
+    __m128 aperm3 = _mm_permute_mac(a.b1, _MM_SHUFFLE(2, 2, 1, 1));
+    __m128 aperm2 = _mm_permute_mac(a.b1, _MM_SHUFFLE(3, 3, 0, 0));
+    __m128 aperm1 = _mm_permute_mac(a.b0, _MM_SHUFFLE(2, 2, 1, 1));
+    __m128 aperm0 = _mm_permute_mac(a.b0, _MM_SHUFFLE(3, 3, 0, 0));
+    
+    mat4 ret;
+    ret.b0 = _mm_fma_mac(
+        aperm0, a.b0,
         _mm_fma_mac(
-            _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m0, 1))), a.m1,
+            aperm1, _mm_permute_mac(a.b0, _MM_SHUFFLE(1, 0, 3, 2)),
             _mm_fma_mac(
-                _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m0, 2))), a.m2,
-                _mm_mul_ps(_mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m0, 3))), a.m3)
+                aperm2, a.b2,
+                _mm_mul_ps(aperm3, _mm_permute_mac(a.b2, _MM_SHUFFLE(1, 0, 3, 2)))
             )
         )
     );
-    ret.m1 = _mm_fma_mac(
-        _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m1, 0))), a.m0,
+    ret.b1 = _mm_fma_mac(
+        aperm0, a.b1,
         _mm_fma_mac(
-            _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m1, 1))), a.m1,
+            aperm1, _mm_permute_mac(a.b1, _MM_SHUFFLE(1, 0, 3, 2)),
             _mm_fma_mac(
-                _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m1, 2))), a.m2,
-                _mm_mul_ps(_mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m1, 3))), a.m3)
+                aperm2, a.b3,
+                _mm_mul_ps(aperm3, _mm_permute_mac(a.b3, _MM_SHUFFLE(1, 0, 3, 2)))
             )
         )
     );
-    ret.m2 = _mm_fma_mac(
-        _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m2, 0))), a.m0,
+    aperm3 = _mm_permute_mac(a.b3, _MM_SHUFFLE(2, 2, 1, 1));
+    aperm2 = _mm_permute_mac(a.b3, _MM_SHUFFLE(3, 3, 0, 0));
+    aperm1 = _mm_permute_mac(a.b2, _MM_SHUFFLE(2, 2, 1, 1));
+    aperm0 = _mm_permute_mac(a.b2, _MM_SHUFFLE(3, 3, 0, 0));
+    
+    ret.b2 = _mm_fma_mac(
+        aperm0, a.b0,
         _mm_fma_mac(
-            _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m2, 1))), a.m1,
+            aperm1, _mm_permute_mac(a.b0, _MM_SHUFFLE(1, 0, 3, 2)),
             _mm_fma_mac(
-                _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m2, 2))), a.m2,
-                _mm_mul_ps(_mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m2, 3))), a.m3)
+                aperm2, a.b2,
+                _mm_mul_ps(aperm3, _mm_permute_mac(a.b2, _MM_SHUFFLE(1, 0, 3, 2)))
             )
         )
     );
-    ret.m3 = _mm_fma_mac(
-        _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m3, 0))), a.m0,
+    ret.b3 = _mm_fma_mac(
+        aperm0, a.b1,
         _mm_fma_mac(
-            _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m3, 1))), a.m1,
+            aperm1, _mm_permute_mac(a.b1, _MM_SHUFFLE(1, 0, 3, 2)),
             _mm_fma_mac(
-                _mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m3, 2))), a.m2,
-                _mm_mul_ps(_mm_set_ps1(reinterpret_int_float(_mm_extract_ps(a.m3, 3))), a.m3)
+                aperm2, a.b3,
+                _mm_mul_ps(aperm3, _mm_permute_mac(a.b3, _MM_SHUFFLE(1, 0, 3, 2)))
             )
         )
     );
+
     return ret;
 }
 
 /// @brief Compute the Nth positive integral power of a 4x4 matrix.
-pure_fn rmat4 pow_rmat4(const rmat4 a, const unsigned N) {
-    rmat4 res = create_rmat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
-    rmat4 base = a;
+pure_fn mat4 pow_mat4(const mat4 a, const unsigned N) {
+    mat4 res = create_mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+    mat4 base = a;
     unsigned n = N;
     
     while (n > 0) {
         if (n % 2 == 1) {
-            res = mul_rmat4(res, base);
+            res = mul_mat4(res, base);
         }
-        base = sqr_rmat4(base);
+        base = sqr_mat4(base);
         n /= 2;
     }
     
@@ -477,37 +484,35 @@ pure_fn rmat4 pow_rmat4(const rmat4 a, const unsigned N) {
 
 
 
-
-/// @brief Store a 4x4 matrix as an array.
-void store_rmat4(float *arr, const rmat4 a) { // arr must be at least 16 wide
-    _mm_storeu_ps(arr, a.m0);
-    _mm_storeu_ps(arr + 4, a.m1);
-    _mm_storeu_ps(arr + 8, a.m2);
-    _mm_storeu_ps(arr + 12, a.m3);
+#define swap_mat_tmp_6969(i, j) \
+    store = arr[i]; \
+    arr[i] = arr[j]; \
+    arr[j] = store
+/// @brief Store a 4x4 block matrix as an array.
+void store_mat4(float *arr, const mat4 a) {
+    memcpy(arr, &a, sizeof(mat4));
+    // a0 a1 b0 b1
+    // a2 a3 b2 b3
+    // c0 c1 d0 d1
+    // c2 c3 d2 d3
+    float store;
+    swap_mat_tmp_6969(2, 4);
+    swap_mat_tmp_6969(3, 5);
+    swap_mat_tmp_6969(10, 12);
+    swap_mat_tmp_6969(11, 13);
 }
+#undef swap_mat_tmp_6969
+/// @brief Print a 4x4 block matrix.
+void print_mat4(const mat4 a) {
+    _Alignas(16) float arr[16];
+    memcpy(arr, &a, sizeof(mat4));
 
-/// @brief Print a 4x4 matrix.
-void print_rmat4(const rmat4 a) {
-    _Alignas(16) float a_arr[16];
-    memcpy(a_arr, &a, sizeof(rmat4));
     printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n\n",
-        a_arr[0], a_arr[1], a_arr[2], a_arr[3],
-        a_arr[4], a_arr[5], a_arr[6], a_arr[7],
-        a_arr[8], a_arr[9], a_arr[10], a_arr[11],
-        a_arr[12], a_arr[13], a_arr[14], a_arr[15]
+        arr[0], arr[1], arr[4], arr[5],
+        arr[2], arr[3], arr[6], arr[7],
+        arr[8], arr[9], arr[12], arr[13],
+        arr[10], arr[11], arr[14], arr[15]
     );
-}
-
-/// @brief Store a 4-vector as an array.
-void store_vec4(float *arr, const vec4 a) { // arr must be at least 4 wide
-    _mm_storeu_ps(arr, a);
-}
-
-/// @brief Print a 4-vector.
-void print_vec4(const vec4 a) {
-    _Alignas(16) float a_arr[4];
-    _mm_store_ps(a_arr, a);
-    printf("%f %f %f %f\n\n", a_arr[0], a_arr[1], a_arr[2], a_arr[3]);
 }
 
 

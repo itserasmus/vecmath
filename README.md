@@ -3,7 +3,7 @@ VecMath is a highly optimized SIMD-based C library, interoperable with C++ for m
 
 ## Features
 - Block Matrix: The default matrix for 4x4 (and beyond, in the future). Block matrices offer improved performance over row-major matrices.
-- Optimized with SIMD: Uses SIMD intrinsics for maximum speed. Currently supports SSE, with almost full AVX support, and planned support for AVX512.
+- Optimized with SIMD: Uses SIMD intrinsics for maximum speed. Currently supports SSE and AVX, and ongoing support for AVX512.
 - Graphics Extension: Adds basic graphics functions.
 - Optimized yet Abstracted: VecMath is highly optimized using SIMD intrinsics and block matrices, while maintaining sufficient abstraction for ease of use.
 

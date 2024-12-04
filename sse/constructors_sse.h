@@ -1,3 +1,15 @@
+/**
+ * VecMath - SIMD-based Matrix and Vector Library
+ * 
+ * This file is part of the VecMath project and is licensed under the MIT License.
+ * See the LICENSE file in the root of the repository for full license details.
+ * 
+ * Copyright (c) 2024 Om Patil
+ */
+
+/**
+ * Contains functions to create vec2-4 and mat2-4 for the SSE implementation of VecMath.
+ */
 #ifndef VEC_MATH_CONSTRUCTORS_H_SSE
 #define VEC_MATH_CONSTRUCTORS_H_SSE
 #include "vec_math_sse.h"

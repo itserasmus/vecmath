@@ -36,8 +36,8 @@
 #include "mat3x3_avx.h"
 #include "mat4x4_avx.h"
 
+#include "mat4x4_row_avx.h"
 
-#include "block_mat4x4_avx.h"
 
 
 

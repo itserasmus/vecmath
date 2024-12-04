@@ -1,3 +1,15 @@
+/**
+ * VecMath - SIMD-based Matrix and Vector Library
+ * 
+ * This file is part of the VecMath project and is licensed under the MIT License.
+ * See the LICENSE file in the root of the repository for full license details.
+ * 
+ * Copyright (c) 2024 Om Patil
+ */
+
+/**
+ * Contains all `mat4` related functions for the AVX implementation of VecMath.
+ */
 #ifndef MAT4X4_H_AVX
 #define MAT4X4_H_AVX
 #include "vec_math_avx.h"
@@ -9,139 +21,154 @@ namespace avx {
 extern "C" {
 #endif
 
+// add, sub, scal_mul, mul, det, adj, inv, trans, pre_vec_mul, post_vec_mul, powers
+
 
 /// @brief Add two 4x4 matrices.
-pure_fn rmat4 add_rmat4(const rmat4 a, const rmat4 b) {
-    rmat4 ret;
-    ret.m0 = _mm256_add_ps(a.m0, b.m0);
-    ret.m1 = _mm256_add_ps(a.m1, b.m1);
+pure_fn mat4 add_mat4(const mat4 a, const mat4 b) {
+    mat4 ret;
+    ret.b0 = _mm256_add_ps(a.b0, b.b0);
+    ret.b1 = _mm256_add_ps(a.b1, b.b1);
     return ret;
 }
 
 /// @brief Subtract two 4x4 matrices.
-pure_fn rmat4 sub_rmat4(const rmat4 a, const rmat4 b) {
-    rmat4 ret;
-    ret.m0 = _mm256_sub_ps(a.m0, b.m0);
-    ret.m1 = _mm256_sub_ps(a.m1, b.m1);
+pure_fn mat4 sub_mat4(const mat4 a, const mat4 b) {
+    mat4 ret;
+    ret.b0 = _mm256_sub_ps(a.b0, b.b0);
+    ret.b1 = _mm256_sub_ps(a.b1, b.b1);
     return ret;
 }
 
-/// @brief Multtiply a 4x4 matrix by a scalar.
-pure_fn rmat4 scal_mul_rmat4(const rmat4 a, const float b) {
-    rmat4 ret;
+/// @brief Multiply a 4x4 matrix by a scalar.
+pure_fn mat4 scal_mul_mat4(const mat4 a, const float b) {
+    mat4 ret;
     __m256 b_vec = _mm256_set1_ps(b);
-    ret.m0 = _mm256_mul_ps(a.m0, b_vec);
-    ret.m1 = _mm256_mul_ps(a.m1, b_vec);
+    ret.b0 = _mm256_mul_ps(a.b0, b_vec);
+    ret.b1 = _mm256_mul_ps(a.b1, b_vec);
     return ret;
 }
 
 /// @brief Transpose a 4x4 matrix.
-pure_fn rmat4 trans_rmat4(const rmat4 a) {
-    rmat4 ret;
-    ret.m0 = _mm256_permute2f128_ps(a.m0, a.m1, 0b00100000);
-    ret.m1 = _mm256_permute2f128_ps(a.m0, a.m1, 0b00110001);
-    __m256 tmp2 = _mm256_shuffle_ps(ret.m0, ret.m1, _MM_SHUFFLE(1, 0, 1, 0));
-    __m256 tmp3 = _mm256_shuffle_ps(ret.m0, ret.m1, _MM_SHUFFLE(3, 2, 3, 2));
-    ret.m0 = _mm256_permute2f128_ps(tmp2, tmp3, 0b00100000);
-    ret.m1 = _mm256_permute2f128_ps(tmp2, tmp3, 0b00110001);
-    tmp2 = _mm256_shuffle_ps(ret.m0, ret.m1, _MM_SHUFFLE(2, 0, 2, 0));
-    tmp3 = _mm256_shuffle_ps(ret.m0, ret.m1, _MM_SHUFFLE(3, 1, 3, 1));
-    ret.m0 = _mm256_permute2f128_ps(tmp2, tmp3, 0b00100000);
-    ret.m1 = _mm256_permute2f128_ps(tmp2, tmp3, 0b00110001);
+pure_fn mat4 trans_mat4(const mat4 a) {
+    mat4 ret;
+    ret.b0 = _mm256_permute_mac(a.b0, _MM_SHUFFLE(3, 1, 2, 0));
+    ret.b1 = _mm256_permute2f128_ps(
+        _mm256_permute_mac(a.b1, _MM_SHUFFLE(3, 1, 2, 0)),
+        ret.b0,
+        0b00000001
+    );
     return ret;
 }
 
 /// @brief Compute the determinant of a 4x4 matrix.
-pure_fn float det_rmat4(const rmat4 a) {
-    // det = 
-    // (a0b0 - a0b0) * (a1b1 - a1b1)
-    //   0 0    0 0      0 0    0 0
-    //   0 1    1 0      3 2    2 3
-    //   0 2    2 0      1 3    3 1
-    //   0 3    3 0      2 1    1 2
-    // (a1b1 - a1b1) * (a0b0 - a0b0)
-    //   0 0    0 0      0 0    0 0
-    //   0 1    1 0      3 2    2 3
-    //   0 2    2 0      1 3    3 1
-    //   0 3    3 0      2 1    1 2
-    //   c0     c1       c2     c3
-    __m256 lane_swap0 = _mm256_permute2f128_ps(a.m0, a.m0, 0b00000001);
-    __m256 lane_swap1 = _mm256_permute2f128_ps(a.m1, a.m1, 0b00000001);
-    __m256 dp = _mm256_dp_ps(
-        _mm256_fms_mac(
-            _mm256_permute_mac(lane_swap0, _MM_SHUFFLE(2, 1, 3, 0)),
-            _mm256_permute_mac(lane_swap1, _MM_SHUFFLE(1, 3, 2, 0)),
-            _mm256_mul_ps(
-                _mm256_permute_mac(lane_swap0, _MM_SHUFFLE(1, 3, 2, 0)),
-                _mm256_permute_mac(lane_swap1, _MM_SHUFFLE(2, 1, 3, 0))
+pure_fn float det_mat4(const mat4 a) {
+    // det =
+    // (a0a3 - a1a2)(c0c3 - c1c2) +
+    // (b0b3 - b1b2)(d0d3 - d1d2) +
+    // 
+    // ( ab  -  ab )( cd  -  cd )
+    //   0 3   2 1    1 2   3 0
+    //   1 2   3 0    0 3   2 1
+    //   2 0   0 2    1 3   3 1
+    //   3 1   1 3    0 2   2 0
+    // ( cd  -  cd )
+    //   1 2   3 0
+    //   0 3   2 1
+    //   1 3   3 1
+    //   0 2   2 0
+    __m256 prods_diff = _mm256_sub_ps(
+        _mm256_mul_ps(
+            _mm256_setr_m128(
+                _mm_permute_mac(_mm256_castps256_ps128(a.b0), _MM_SHUFFLE(3, 2, 1, 0)),
+                _mm_permute_mac(_mm256_extractf128_ps(a.b1, 1), _MM_SHUFFLE(0, 1, 0, 1))
+            ),
+            _mm256_setr_m128(
+                _mm_permute_mac(_mm256_castps256_ps128(a.b1), _MM_SHUFFLE(1, 0, 2, 3)),
+                _mm_permute_mac(_mm256_extractf128_ps(a.b0, 1), _MM_SHUFFLE(2, 3, 3, 2))
             )
         ),
-        _mm256_fms_mac(
-            _mm256_permute_mac(a.m0, _MM_SHUFFLE(0, 0, 0, 0)), a.m1,
-            _mm256_mul_ps(a.m0, _mm256_permute_mac(a.m1, _MM_SHUFFLE(0, 0, 0, 0)))
-        ),
-        0b11101111
-    );
-    return _mm_cvtss_f32(_mm256_castps256_ps128(dp)) + _mm_cvtss_f32(_mm256_extractf128_ps(dp, 1));
-}
-
-/// @brief Multiply a 4-vector by a 4x4 matrix.
-pure_fn vec4 mul_vec4_rmat4(const vec4 a, const rmat4 b) {
-    __m256 tmp0 = _mm256_fma_mac(
-        _mm256_set_m128(
-            _mm_permute_mac(a, _MM_SHUFFLE(1, 1, 1, 1)),
-            _mm_permute_mac(a, _MM_SHUFFLE(0, 0, 0, 0))
-        ),
-        b.m0, 
         _mm256_mul_ps(
-            _mm256_set_m128(
-                _mm_permute_mac(a, _MM_SHUFFLE(3, 3, 3, 3)),
-                _mm_permute_mac(a, _MM_SHUFFLE(2, 2, 2, 2))
+            _mm256_setr_m128(
+                _mm_permute_mac(_mm256_castps256_ps128(a.b0), _MM_SHUFFLE(1, 0, 3, 2)),
+                _mm_permute_mac(_mm256_extractf128_ps(a.b1, 1), _MM_SHUFFLE(2, 3, 2, 3))
             ),
-            b.m1
+            _mm256_setr_m128(
+                _mm_permute_mac(_mm256_castps256_ps128(a.b1), _MM_SHUFFLE(3, 2, 0, 1)),
+                _mm_permute_mac(_mm256_extractf128_ps(a.b0, 1), _MM_SHUFFLE(0, 1, 1, 0))
+            )
         )
     );
-    return _mm_add_ps(
-        _mm256_castps256_ps128(tmp0),
-        _mm256_extractf128_ps(tmp0, 1)
+    float lower = _mm_cvtss_f32(_mm_dp_ps(
+        _mm256_castps256_ps128(prods_diff),
+        _mm256_extractf128_ps(prods_diff, 1),
+        0b11110001
+    ));
+    prods_diff = _mm256_mul_ps(
+        _mm256_blend_ps(a.b0, a.b1, 0b11001100),
+        _mm256_permute_mac(_mm256_blend_ps(a.b0, a.b1, 0b00110011), _MM_SHUFFLE(0, 1, 2, 3))
     );
+    __m128 prods = _mm_hsub_ps(_mm256_castps256_ps128(prods_diff), _mm256_extractf128_ps(prods_diff, 1));
+    float upper = _mm_cvtss_f32(_mm_dp_ps(prods, _mm_permute_mac(prods, _MM_SHUFFLE(1, 0, 3, 2)), 0b00110001));
+    return lower + upper;
 }
 
-/// @brief Multiply a 4x4 matrix by a 4-vector.
-pure_fn vec4 mul_rmat4_vec4(const rmat4 a, const vec4 b) {
-    __m256 b_exp = _mm256_set_m128(b, b); // expanded b
-    __m256 tmp0 = _mm256_blend_ps(
-        _mm256_dp_ps(a.m0, b_exp, 0b11110001),
-        _mm256_dp_ps(a.m1, b_exp, 0b11110010),
-        0b00100010
+/// @brief Multiply a 4-vector with a 4x4 matrix.
+pure_fn vec4 mul_vec4_mat4(const vec4 a, const mat4 b) {
+    __m256 a_exp = _mm256_set_m128(_mm_permute_mac(a, _MM_SHUFFLE(3, 2, 3, 2)), _mm_permute_mac(a, _MM_SHUFFLE(1, 0, 1, 0)));
+    __m256 prod = _mm256_fma_mac(
+        a_exp, _mm256_permute_mac(b.b0, _MM_SHUFFLE(3, 1, 2, 0)),
+        _mm256_permute2f128_ps(_mm256_mul_ps(a_exp, _mm256_permute_mac(b.b1, _MM_SHUFFLE(3, 1, 2, 0))), b.b1, 0b00000001)
     );
-    vec4 ret = _mm_movelh_ps(
-        _mm256_castps256_ps128(tmp0),
-        _mm256_extractf128_ps(tmp0, 1)
+    return _mm_hadd_ps(_mm256_castps256_ps128(prod), _mm256_extractf128_ps(prod, 1));
+}
+
+/// @brief Multiply a 4x4 matrix with a 4-vector.
+pure_fn vec4 mul_mat4_vec4(const mat4 a, const vec4 b) {
+    __m256 b_exp = _mm256_set_m128(_mm_permute_mac(b, _MM_SHUFFLE(3, 2, 3, 2)), _mm_permute_mac(b, _MM_SHUFFLE(1, 0, 1, 0)));
+    __m256 prod = _mm256_fma_mac(
+        b_exp, a.b0,
+        _mm256_mul_ps(_mm256_permute2f128_ps(b_exp, b_exp, 0b00000001), a.b1)
     );
-    return _mm_permute_mac(ret, _MM_SHUFFLE(3, 1, 2, 0));
+    return _mm_hadd_ps(_mm256_castps256_ps128(prod), _mm256_extractf128_ps(prod, 1));
 }
 
 /// @brief Multiply two 4x4 matrices.
-pure_fn rmat4 mul_rmat4(const rmat4 a, const rmat4 b) {
-    rmat4 ret;
-    ret.m0 = _mm256_fma_mac(
-        _mm256_permute_mac(a.m0, _MM_SHUFFLE(0, 0, 0, 0)), _mm256_permute2f128_ps(b.m0, b.m0, 0b00000000),
+pure_fn mat4 mul_mat4(const mat4 a, const mat4 b) {
+    // A01, B01 are the two __m256s of a
+    // C01, D01 are the two __m256s of b
+    // C10, D10 are the two __m256s of b with swapped lanes
+    // multiply the "blocks" like 2x2 matrices, not pairwise
+    // ret.b0 = A01*C01 + B01*D10
+    // ret.b1 = A01*D01 + B01*C10
+    mat4 ret;
+    ret.b1 = _mm256_permute2f128_ps(b.b1, b.b1, 0b00000001); // use as temporary variable
+    ret.b0 = _mm256_fma_mac(
+        _mm256_permute_mac(a.b0, _MM_SHUFFLE(3, 3, 0, 0)), b.b0,
         _mm256_fma_mac(
-            _mm256_permute_mac(a.m0, _MM_SHUFFLE(1, 1, 1, 1)), _mm256_permute2f128_ps(b.m0, b.m0, 0b00010001),
+            _mm256_permute_mac(a.b0, _MM_SHUFFLE(2, 2, 1, 1)),
+            _mm256_permute_mac(b.b0, _MM_SHUFFLE(1, 0, 3, 2)),
             _mm256_fma_mac(
-                _mm256_permute_mac(a.m0, _MM_SHUFFLE(2, 2, 2, 2)), _mm256_permute2f128_ps(b.m1, b.m1, 0b00000000),
-                _mm256_mul_ps(_mm256_permute_mac(a.m0, _MM_SHUFFLE(3, 3, 3, 3)), _mm256_permute2f128_ps(b.m1, b.m1, 0b00010001))
-            )
+                _mm256_permute_mac(a.b1, _MM_SHUFFLE(3, 3, 0, 0)), ret.b1,
+                _mm256_mul_ps(
+                    _mm256_permute_mac(a.b1, _MM_SHUFFLE(2, 2, 1, 1)),
+                    _mm256_permute_mac(ret.b1, _MM_SHUFFLE(1, 0, 3, 2))
+                )
+        )
         )
     );
-    ret.m1 = _mm256_fma_mac(
-        _mm256_permute_mac(a.m1, _MM_SHUFFLE(0, 0, 0, 0)), _mm256_permute2f128_ps(b.m0, b.m0, 0b00000000),
+    ret.b1 = _mm256_permute2f128_ps(b.b0, b.b0, 0b00000001); // use as temporary variable
+    ret.b1 = _mm256_fma_mac(
+        _mm256_permute_mac(a.b0, _MM_SHUFFLE(3, 3, 0, 0)), b.b1,
         _mm256_fma_mac(
-            _mm256_permute_mac(a.m1, _MM_SHUFFLE(1, 1, 1, 1)), _mm256_permute2f128_ps(b.m0, b.m0, 0b00010001),
+            _mm256_permute_mac(a.b0, _MM_SHUFFLE(2, 2, 1, 1)),
+            _mm256_permute_mac(b.b1, _MM_SHUFFLE(1, 0, 3, 2)),
             _mm256_fma_mac(
-                _mm256_permute_mac(a.m1, _MM_SHUFFLE(2, 2, 2, 2)), _mm256_permute2f128_ps(b.m1, b.m1, 0b00000000),
-                _mm256_mul_ps(_mm256_permute_mac(a.m1, _MM_SHUFFLE(3, 3, 3, 3)), _mm256_permute2f128_ps(b.m1, b.m1, 0b00010001))
+                _mm256_permute_mac(a.b1, _MM_SHUFFLE(3, 3, 0, 0)), ret.b1,
+                _mm256_mul_ps(
+                    _mm256_permute_mac(a.b1, _MM_SHUFFLE(2, 2, 1, 1)),
+                    _mm256_permute_mac(ret.b1, _MM_SHUFFLE(1, 0, 3, 2))
+                )
             )
         )
     );
@@ -149,183 +176,241 @@ pure_fn rmat4 mul_rmat4(const rmat4 a, const rmat4 b) {
 }
 
 /// @brief Compute the cofactor of a 4x4 matrix.
-pure_fn rmat4 cofactor_rmat4(const rmat4 a) {
-    rmat4 ret;
-    // determinants (the columns of the determinant):
-    // 1 -> 0 1 - 1 0
+pure_fn mat4 cofactor_mat4(const mat4 a) {
+    // determinants (the ids of the determinants (AB - AB)):
     // 2 -> 0 2 - 2 0
-    // 3 -> 0 3 - 3 0
-    // 4 -> 1 2 - 2 1
+    // 3 -> 0 3 - 2 1
+    // 4 -> 1 2 - 3 0
     // 5 -> 1 3 - 3 1
-    // 6 -> 2 3 - 3 2   
-    // 
-    // first 3 columns are the adjacent row "id" and
-    // last three are the determinants to mulitply them with
-    // (b b b) * (D D  D)
-    //  2 3 1     5 4 -6
-    //  3 2 0     2 3 +6
-    //  1 0 3     3 5 -1
-    //  0 1 2     4 2 +1
+    // 1 -> a0a3 - a1a2
+    // 6 -> b0b3 - b1b2
+    
+    // For cofactor of Block A:
+    //  Dets    blocks
+    // + - +    b b a
+    // 4 5 6    3 2 3
+    // 3 2 -6   2 3 2
+    // 5 4 -6   0 1 1
+    // 2 3 6    1 0 0
+    // A B C
+    
+    // For cofactor of Block B:
+    //  Dets    blocks
+    // + - +    a a b
+    // 5 3 1    2 3 3
+    // 2 4 -1   3 2 2
+    // 3 5 -1   1 0 1
+    // 4 2 1    0 1 0
 
-    // calculate -6 +6 -1 +1
-    __m256 dets = _mm256_permute2f128_ps(_mm256_fms_mac(
-        _mm256_permute_mac(a.m0, _MM_SHUFFLE(1, 0, 0, 1)),
-        _mm256_permute_mac(a.m1, _MM_SHUFFLE(2, 3, 2, 3)),
-        _mm256_mul_ps(
-            _mm256_permute_mac(a.m0, _MM_SHUFFLE(2, 3, 2, 3)),
-            _mm256_permute_mac(a.m1, _MM_SHUFFLE(1, 0, 0, 1))
-        )
-    ), a.m0, 0b00000001);
-    __m256 dets6611 =_mm256_permute2f128_ps( _mm256_fms_mac(
-        _mm256_permute_mac(a.m0, _MM_SHUFFLE(0, 1, 2, 3)),
-        _mm256_permute_mac(a.m1, _MM_SHUFFLE(1, 0, 3, 2)),
-        _mm256_mul_ps(
-            _mm256_permute_mac(a.m0, _MM_SHUFFLE(1, 0, 3, 2)),
-            _mm256_permute_mac(a.m1, _MM_SHUFFLE(0, 1, 2, 3))
-        )
-    ), a.m0, 0b00000001);
-    ret.m0 = _mm256_fma_mac(
-        _mm256_permute_mac(a.m1, _MM_SHUFFLE(0, 1, 3, 2)), dets,
+
+    mat4 ret;
+    __m256 dets_16 = _mm256_mul_ps(
+        _mm256_shuffle_ps(a.b1, a.b0, _MM_SHUFFLE(2, 0, 2, 0)),
+        _mm256_shuffle_ps(a.b1, a.b0, _MM_SHUFFLE(1, 3, 1, 3))
+    );
+    dets_16 = _mm256_permute2f128_ps(
+        _mm256_hsub_ps(
+            _mm256_permute_mac(dets_16, _MM_SHUFFLE(2, 3, 3, 2)),
+            _mm256_permute_mac(dets_16, _MM_SHUFFLE(1, 0, 0, 1))
+        ),
+        dets_16,
+        0b00000001
+    );
+
+    __m256 dets_A = _mm256_permute2f128_ps(
         _mm256_fms_mac(
-            _mm256_permute_mac(a.m1, _MM_SHUFFLE(2, 3, 0, 1)), dets6611,
+            _mm256_permute_mac(a.b0, _MM_SHUFFLE(2, 3, 3, 2)),
+            _mm256_permute_mac(a.b1, _MM_SHUFFLE(0, 1, 0, 1)),
             _mm256_mul_ps(
-                _mm256_permute_mac(a.m1, _MM_SHUFFLE(1, 0, 2, 3)),
-                _mm256_permute_mac(dets, _MM_SHUFFLE(1, 0, 2, 3))
+                _mm256_permute_mac(a.b0, _MM_SHUFFLE(0, 1, 1, 0)),
+                _mm256_permute_mac(a.b1, _MM_SHUFFLE(2, 3, 2, 3))
+            )
+        ),
+        a.b0,
+        0b00000001
+    );
+    ret.b0 = _mm256_mul_ps(a.b0, dets_A);
+
+    ret.b1 = _mm256_fms_mac(
+        _mm256_permute_mac(a.b1, _MM_SHUFFLE(0, 1, 2, 3)),
+        _mm256_permute_mac(dets_16, _MM_SHUFFLE(3, 2, 2, 3)),
+        _mm256_fms_mac(
+            _mm256_permute_mac(a.b0, _MM_SHUFFLE(1, 0, 2, 3)),
+            _mm256_permute_mac(dets_A, _MM_SHUFFLE(3, 2, 0, 1)),
+            _mm256_permute_mac(ret.b0, _MM_SHUFFLE(0, 1, 3, 2))
+        )
+    );
+
+    ret.b0 = _mm256_fma_mac(
+        _mm256_permute_mac(a.b1, _MM_SHUFFLE(1, 0, 2, 3)),
+        dets_A,
+        _mm256_fms_mac(
+                _mm256_permute_mac(a.b0, _MM_SHUFFLE(0, 1, 2, 3)),
+                _mm256_permute_mac(dets_16, _MM_SHUFFLE(0, 1, 1, 0)),
+            _mm256_mul_ps(
+                _mm256_permute_mac(a.b1, _MM_SHUFFLE(0, 1, 3, 2)),
+                _mm256_permute_mac(dets_A, _MM_SHUFFLE(1, 0, 3, 2))
             )
         )
     );
-    ret.m1 = _mm256_fms_mac(
-        _mm256_permute_mac(a.m0, _MM_SHUFFLE(1, 0, 2, 3)),
-        _mm256_permute_mac(dets, _MM_SHUFFLE(1, 0, 2, 3)),
-        _mm256_fma_mac(
-            _mm256_permute_mac(a.m0, _MM_SHUFFLE(0, 1, 3, 2)), dets,
-            _mm256_mul_ps(_mm256_permute_mac(a.m0, _MM_SHUFFLE(2, 3, 0, 1)), dets6611)
-        )
-    );
+
     return ret;
 }
 
 /// @brief Compute the adjoint of a 4x4 matrix.
-pure_fn rmat4 adj_rmat4(const rmat4 a) {
-    rmat4 ret;
-    ret.m0 = _mm256_permute2f128_ps(_mm256_fms_mac(
-        _mm256_permute_mac(a.m0, _MM_SHUFFLE(1, 0, 0, 1)),
-        _mm256_permute_mac(a.m1, _MM_SHUFFLE(2, 3, 2, 3)),
-        _mm256_mul_ps(
-            _mm256_permute_mac(a.m0, _MM_SHUFFLE(2, 3, 2, 3)),
-            _mm256_permute_mac(a.m1, _MM_SHUFFLE(1, 0, 0, 1))
-        )
-    ), a.m0, 0b00000001);
-    ret.m1 =_mm256_permute2f128_ps( _mm256_fms_mac(
-        _mm256_permute_mac(a.m0, _MM_SHUFFLE(0, 1, 2, 3)),
-        _mm256_permute_mac(a.m1, _MM_SHUFFLE(1, 0, 3, 2)),
-        _mm256_mul_ps(
-            _mm256_permute_mac(a.m0, _MM_SHUFFLE(1, 0, 3, 2)),
-            _mm256_permute_mac(a.m1, _MM_SHUFFLE(0, 1, 2, 3))
-        )
-    ), a.m0, 0b00000001);
-    __m256 tmp0 = _mm256_fma_mac(
-        _mm256_permute_mac(a.m1, _MM_SHUFFLE(0, 1, 3, 2)), ret.m0,
+pure_fn mat4 adj_mat4(const mat4 a) {
+    // refer to `cofactor_mat4` for logic details
+    mat4 ret;
+    __m256 dets_16 = _mm256_mul_ps(
+        _mm256_shuffle_ps(a.b1, a.b0, _MM_SHUFFLE(2, 0, 2, 0)),
+        _mm256_shuffle_ps(a.b1, a.b0, _MM_SHUFFLE(1, 3, 1, 3))
+    );
+    dets_16 = _mm256_permute2f128_ps(
+        _mm256_hsub_ps(
+            _mm256_permute_mac(dets_16, _MM_SHUFFLE(2, 3, 3, 2)),
+            _mm256_permute_mac(dets_16, _MM_SHUFFLE(1, 0, 0, 1))
+        ),
+        dets_16,
+        0b00000001
+    );
+
+    __m256 dets_A = _mm256_permute2f128_ps(
         _mm256_fms_mac(
-            _mm256_permute_mac(a.m1, _MM_SHUFFLE(2, 3, 0, 1)), ret.m1,
+            _mm256_permute_mac(a.b0, _MM_SHUFFLE(2, 3, 3, 2)),
+            _mm256_permute_mac(a.b1, _MM_SHUFFLE(0, 1, 0, 1)),
             _mm256_mul_ps(
-                _mm256_permute_mac(a.m1, _MM_SHUFFLE(1, 0, 2, 3)),
-                _mm256_permute_mac(ret.m0, _MM_SHUFFLE(1, 0, 2, 3))
+                _mm256_permute_mac(a.b0, _MM_SHUFFLE(0, 1, 1, 0)),
+                _mm256_permute_mac(a.b1, _MM_SHUFFLE(2, 3, 2, 3))
+            )
+        ),
+        a.b0,
+        0b00000001
+    );
+    ret.b0 = _mm256_mul_ps(a.b0, dets_A);
+
+    ret.b1 = _mm256_fms_mac(
+        _mm256_permute_mac(a.b1, _MM_SHUFFLE(0, 2, 1, 3)),
+        _mm256_permute_mac(dets_16, _MM_SHUFFLE(3, 2, 2, 3)),
+        _mm256_fms_mac(
+            _mm256_permute_mac(a.b0, _MM_SHUFFLE(1, 2, 0, 3)),
+            _mm256_permute_mac(dets_A, _MM_SHUFFLE(3, 0, 2, 1)),
+            _mm256_permute_mac(ret.b0, _MM_SHUFFLE(0, 3, 1, 2))
+        )
+    );
+    ret.b1 = _mm256_permute2f128_ps(ret.b1, ret.b1, 0b00000001);
+
+    ret.b0 = _mm256_fma_mac(
+        _mm256_permute_mac(a.b1, _MM_SHUFFLE(1, 2, 0, 3)),
+        _mm256_permute_mac(dets_A, _MM_SHUFFLE(3, 1, 2, 0)),
+        _mm256_fms_mac(
+            _mm256_permute_mac(a.b0, _MM_SHUFFLE(0, 2, 1, 3)),
+            _mm256_permute_mac(dets_16, _MM_SHUFFLE(0, 1, 1, 0)),
+            _mm256_mul_ps(
+                _mm256_permute_mac(a.b1, _MM_SHUFFLE(0, 3, 1, 2)),
+                _mm256_permute_mac(dets_A, _MM_SHUFFLE(1, 3, 0, 2))
             )
         )
     );
-    __m256 tmp1 = _mm256_fms_mac(
-        _mm256_permute_mac(a.m0, _MM_SHUFFLE(1, 0, 2, 3)),
-        _mm256_permute_mac(ret.m0, _MM_SHUFFLE(1, 0, 2, 3)),
-        _mm256_fma_mac(
-            _mm256_permute_mac(a.m0, _MM_SHUFFLE(0, 1, 3, 2)), ret.m0,
-            _mm256_mul_ps(_mm256_permute_mac(a.m0, _MM_SHUFFLE(2, 3, 0, 1)), ret.m1)
-        )
-    );
-    ret.m0 = _mm256_permute2f128_ps(tmp0, tmp1, 0b00100000);
-    ret.m1 = _mm256_permute2f128_ps(tmp0, tmp1, 0b00110001);
-    __m256 tmp2 = _mm256_shuffle_ps(ret.m0, ret.m1, _MM_SHUFFLE(1, 0, 1, 0));
-    __m256 tmp3 = _mm256_shuffle_ps(ret.m0, ret.m1, _MM_SHUFFLE(3, 2, 3, 2));
-    ret.m0 = _mm256_permute2f128_ps(tmp2, tmp3, 0b00100000);
-    ret.m1 = _mm256_permute2f128_ps(tmp2, tmp3, 0b00110001);
-    tmp2 = _mm256_shuffle_ps(ret.m0, ret.m1, _MM_SHUFFLE(2, 0, 2, 0));
-    tmp3 = _mm256_shuffle_ps(ret.m0, ret.m1, _MM_SHUFFLE(3, 1, 3, 1));
-    ret.m0 = _mm256_permute2f128_ps(tmp2, tmp3, 0b00100000);
-    ret.m1 = _mm256_permute2f128_ps(tmp2, tmp3, 0b00110001);
+
     return ret;
 }
 
-/// @brief Compute the inverse of a 4x4 matrix.
-pure_fn rmat4 inv_rmat4(const rmat4 a) {
-    rmat4 ret;
-    ret.m0 = _mm256_permute2f128_ps(_mm256_fms_mac(
-        _mm256_permute_mac(a.m0, _MM_SHUFFLE(1, 0, 0, 1)),
-        _mm256_permute_mac(a.m1, _MM_SHUFFLE(2, 3, 2, 3)),
-        _mm256_mul_ps(
-            _mm256_permute_mac(a.m0, _MM_SHUFFLE(2, 3, 2, 3)),
-            _mm256_permute_mac(a.m1, _MM_SHUFFLE(1, 0, 0, 1))
-        )
-    ), a.m0, 0b00000001);
-    ret.m1 =_mm256_permute2f128_ps( _mm256_fms_mac(
-        _mm256_permute_mac(a.m0, _MM_SHUFFLE(0, 1, 2, 3)),
-        _mm256_permute_mac(a.m1, _MM_SHUFFLE(1, 0, 3, 2)),
-        _mm256_mul_ps(
-            _mm256_permute_mac(a.m0, _MM_SHUFFLE(1, 0, 3, 2)),
-            _mm256_permute_mac(a.m1, _MM_SHUFFLE(0, 1, 2, 3))
-        )
-    ), a.m0, 0b00000001);
-    __m256 tmp0 = _mm256_fma_mac(
-        _mm256_permute_mac(a.m1, _MM_SHUFFLE(0, 1, 3, 2)), ret.m0,
+/// @brief Compute the inverse of a 4x4 matrix. 
+pure_fn mat4 inv_mat4(const mat4 a) {
+    // refer to `cofactor_mat4` for logic details
+    mat4 ret;
+    __m256 dets_16 = _mm256_mul_ps(
+        _mm256_shuffle_ps(a.b1, a.b0, _MM_SHUFFLE(2, 0, 2, 0)),
+        _mm256_shuffle_ps(a.b1, a.b0, _MM_SHUFFLE(1, 3, 1, 3))
+    );
+    dets_16 = _mm256_permute2f128_ps(
+        _mm256_hsub_ps(
+            _mm256_permute_mac(dets_16, _MM_SHUFFLE(2, 3, 3, 2)),
+            _mm256_permute_mac(dets_16, _MM_SHUFFLE(1, 0, 0, 1))
+        ),
+        dets_16,
+        0b00000001
+    );
+
+    __m256 dets_A = _mm256_permute2f128_ps(
         _mm256_fms_mac(
-            _mm256_permute_mac(a.m1, _MM_SHUFFLE(2, 3, 0, 1)), ret.m1,
+            _mm256_permute_mac(a.b0, _MM_SHUFFLE(2, 3, 3, 2)),
+            _mm256_permute_mac(a.b1, _MM_SHUFFLE(0, 1, 0, 1)),
             _mm256_mul_ps(
-                _mm256_permute_mac(a.m1, _MM_SHUFFLE(1, 0, 2, 3)),
-                _mm256_permute_mac(ret.m0, _MM_SHUFFLE(1, 0, 2, 3))
+                _mm256_permute_mac(a.b0, _MM_SHUFFLE(0, 1, 1, 0)),
+                _mm256_permute_mac(a.b1, _MM_SHUFFLE(2, 3, 2, 3))
+            )
+        ),
+        a.b0,
+        0b00000001
+    );
+
+    ret.b0 = _mm256_fma_mac(
+        _mm256_permute_mac(a.b1, _MM_SHUFFLE(1, 2, 0, 3)),
+        _mm256_permute_mac(dets_A, _MM_SHUFFLE(3, 1, 2, 0)),
+        _mm256_fms_mac(
+            _mm256_permute_mac(a.b0, _MM_SHUFFLE(0, 2, 1, 3)),
+            _mm256_permute_mac(dets_16, _MM_SHUFFLE(0, 1, 1, 0)),
+            _mm256_mul_ps(
+                _mm256_permute_mac(a.b1, _MM_SHUFFLE(0, 3, 1, 2)),
+                _mm256_permute_mac(dets_A, _MM_SHUFFLE(1, 3, 0, 2))
             )
         )
     );
-    __m256 tmp1 = _mm256_fms_mac(
-        _mm256_permute_mac(a.m0, _MM_SHUFFLE(1, 0, 2, 3)),
-        _mm256_permute_mac(ret.m0, _MM_SHUFFLE(1, 0, 2, 3)),
-        _mm256_fma_mac(
-            _mm256_permute_mac(a.m0, _MM_SHUFFLE(0, 1, 3, 2)), ret.m0,
-            _mm256_mul_ps(_mm256_permute_mac(a.m0, _MM_SHUFFLE(2, 3, 0, 1)), ret.m1)
+    __m256 tmp = _mm256_mul_ps(a.b0, dets_A);
+
+    ret.b1 = _mm256_fms_mac(
+        _mm256_permute_mac(a.b1, _MM_SHUFFLE(0, 2, 1, 3)),
+        _mm256_permute_mac(dets_16, _MM_SHUFFLE(3, 2, 2, 3)),
+        _mm256_fms_mac(
+            _mm256_permute_mac(a.b0, _MM_SHUFFLE(1, 2, 0, 3)),
+            _mm256_permute_mac(dets_A, _MM_SHUFFLE(3, 0, 2, 1)),
+            _mm256_permute_mac(tmp, _MM_SHUFFLE(0, 3, 1, 2))
         )
     );
-    __m256 inv_det = _mm256_rcp_mac(_mm256_dp_ps(a.m0, tmp0, 0b11111111));
-    ret.m0 = _mm256_permute2f128_ps(tmp0, tmp1, 0b00100000);
-    ret.m1 = _mm256_permute2f128_ps(tmp0, tmp1, 0b00110001);
-    __m256 tmp2 = _mm256_shuffle_ps(ret.m0, ret.m1, _MM_SHUFFLE(1, 0, 1, 0));
-    __m256 tmp3 = _mm256_shuffle_ps(ret.m0, ret.m1, _MM_SHUFFLE(3, 2, 3, 2));
-    ret.m0 = _mm256_permute2f128_ps(tmp2, tmp3, 0b00100000);
-    ret.m1 = _mm256_permute2f128_ps(tmp2, tmp3, 0b00110001);
-    tmp2 = _mm256_shuffle_ps(ret.m0, ret.m1, _MM_SHUFFLE(2, 0, 2, 0));
-    tmp3 = _mm256_shuffle_ps(ret.m0, ret.m1, _MM_SHUFFLE(3, 1, 3, 1));
-    ret.m0 = _mm256_mul_ps(inv_det, _mm256_permute2f128_ps(tmp2, tmp3, 0b00100000));
-    ret.m1 = _mm256_mul_ps(inv_det, _mm256_permute2f128_ps(tmp2, tmp3, 0b00110001));
+    __m256 inv_det = _mm256_rcp_mac(_mm256_dp_ps(
+        _mm256_shuffle_ps(a.b0, a.b1, _MM_SHUFFLE(1, 0, 1, 0)),
+        _mm256_shuffle_ps(ret.b0, ret.b1, _MM_SHUFFLE(2, 0, 2, 0)),
+        0b11111111
+    ));
+    ret.b1 = _mm256_permute2f128_ps(ret.b1, ret.b1, 0b00000001);
+    
+    ret.b0 = _mm256_mul_ps(ret.b0, inv_det);
+    ret.b1 = _mm256_mul_ps(ret.b1, inv_det);
+
     return ret;
 }
 
 /// @brief Compute the square of a 4x4 matrix.
-pure_fn rmat4 sqr_rmat4(const rmat4 a) {
-    rmat4 ret;
-    ret.m0 = _mm256_fma_mac(
-        _mm256_permute_mac(a.m0, _MM_SHUFFLE(0, 0, 0, 0)), _mm256_permute2f128_ps(a.m0, a.m0, 0b00000000),
+pure_fn mat4 sqr_mat4(const mat4 a) {
+    mat4 ret;
+    ret.b1 = _mm256_permute2f128_ps(a.b1, a.b1, 0b00000001); // use as temporary variable
+    ret.b0 = _mm256_fma_mac(
+        _mm256_permute_mac(a.b0, _MM_SHUFFLE(3, 3, 0, 0)), a.b0,
         _mm256_fma_mac(
-            _mm256_permute_mac(a.m0, _MM_SHUFFLE(1, 1, 1, 1)), _mm256_permute2f128_ps(a.m0, a.m0, 0b00010001),
+            _mm256_permute_mac(a.b0, _MM_SHUFFLE(2, 2, 1, 1)),
+            _mm256_permute_mac(a.b0, _MM_SHUFFLE(1, 0, 3, 2)),
             _mm256_fma_mac(
-                _mm256_permute_mac(a.m0, _MM_SHUFFLE(2, 2, 2, 2)), _mm256_permute2f128_ps(a.m1, a.m1, 0b00000000),
-                _mm256_mul_ps(_mm256_permute_mac(a.m0, _MM_SHUFFLE(3, 3, 3, 3)), _mm256_permute2f128_ps(a.m1, a.m1, 0b00010001))
-            )
+                _mm256_permute_mac(a.b1, _MM_SHUFFLE(3, 3, 0, 0)), ret.b1,
+                _mm256_mul_ps(
+                    _mm256_permute_mac(a.b1, _MM_SHUFFLE(2, 2, 1, 1)),
+                    _mm256_permute_mac(ret.b1, _MM_SHUFFLE(1, 0, 3, 2))
+                )
+        )
         )
     );
-    ret.m1 = _mm256_fma_mac(
-        _mm256_permute_mac(a.m1, _MM_SHUFFLE(0, 0, 0, 0)), _mm256_permute2f128_ps(a.m0, a.m0, 0b00000000),
+    ret.b1 = _mm256_permute2f128_ps(a.b0, a.b0, 0b00000001); // use as temporary variable
+    ret.b1 = _mm256_fma_mac(
+        _mm256_permute_mac(a.b0, _MM_SHUFFLE(3, 3, 0, 0)), a.b1,
         _mm256_fma_mac(
-            _mm256_permute_mac(a.m1, _MM_SHUFFLE(1, 1, 1, 1)), _mm256_permute2f128_ps(a.m0, a.m0, 0b00010001),
+            _mm256_permute_mac(a.b0, _MM_SHUFFLE(2, 2, 1, 1)),
+            _mm256_permute_mac(a.b1, _MM_SHUFFLE(1, 0, 3, 2)),
             _mm256_fma_mac(
-                _mm256_permute_mac(a.m1, _MM_SHUFFLE(2, 2, 2, 2)), _mm256_permute2f128_ps(a.m1, a.m1, 0b00000000),
-                _mm256_mul_ps(_mm256_permute_mac(a.m1, _MM_SHUFFLE(3, 3, 3, 3)), _mm256_permute2f128_ps(a.m1, a.m1, 0b00010001))
+                _mm256_permute_mac(a.b1, _MM_SHUFFLE(3, 3, 0, 0)), ret.b1,
+                _mm256_mul_ps(
+                    _mm256_permute_mac(a.b1, _MM_SHUFFLE(2, 2, 1, 1)),
+                    _mm256_permute_mac(ret.b1, _MM_SHUFFLE(1, 0, 3, 2))
+                )
             )
         )
     );
@@ -333,16 +418,16 @@ pure_fn rmat4 sqr_rmat4(const rmat4 a) {
 }
 
 /// @brief Compute the Nth positive integral power of a 4x4 matrix.
-pure_fn rmat4 pow_rmat4(const rmat4 a, const unsigned N) {
-    rmat4 res = create_rmat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
-    rmat4 base = a;
+pure_fn mat4 pow_mat4(const mat4 a, const unsigned N) {
+    mat4 res = create_mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+    mat4 base = a;
     unsigned n = N;
     
     while (n > 0) {
         if (n % 2 == 1) {
-            res = mul_rmat4(res, base);
+            res = mul_mat4(res, base);
         }
-        base = sqr_rmat4(base);
+        base = sqr_mat4(base);
         n /= 2;
     }
     
@@ -352,37 +437,51 @@ pure_fn rmat4 pow_rmat4(const rmat4 a, const unsigned N) {
 
 
 
-/// @brief Store a 4x4 matrix as an array.
-void store_rmat4(float* arr, const rmat4 a) { // arr must be at least 16 wide
-    _mm256_storeu_ps(arr, a.m0);
-    _mm256_storeu_ps(arr + 8, a.m1);
-}
 
-/// @brief Print a 4x4 matrix.
-void print_rmat4(const rmat4 a) {
-    _Alignas(16) float arr[16];
-    _mm256_store_ps(arr, a.m0);
-    _mm256_store_ps(arr + 8, a.m1);
-    printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n\n",
-        arr[0], arr[1], arr[2], arr[3],
-        arr[4], arr[5], arr[6], arr[7],
-        arr[8], arr[9], arr[10], arr[11],
-        arr[12], arr[13], arr[14], arr[15]
+
+
+
+/// @brief Store a 4x4 block matrix as an array.
+void store_mat4(float *arr, const mat4 a) {
+    _mm_store_ps(arr,
+        _mm_movelh_ps(
+            _mm256_castps256_ps128(a.b0),
+            _mm256_castps256_ps128(a.b1)
+        )
+    );
+    _mm_store_ps(arr + 4,
+        _mm_movehl_ps(
+            _mm256_castps256_ps128(a.b1),
+            _mm256_castps256_ps128(a.b0)
+        )
+    );
+    _mm_store_ps(arr + 8,
+        _mm_movelh_ps(
+            _mm256_extractf128_ps(a.b1, 1),
+            _mm256_extractf128_ps(a.b0, 1)
+        )
+    );
+    _mm_store_ps(arr + 12,
+        _mm_movehl_ps(
+            _mm256_extractf128_ps(a.b0, 1),
+            _mm256_extractf128_ps(a.b1, 1)
+        )
     );
 }
+/// @brief Print a 4x4 block matrix.
+void print_mat4(const mat4 a) {
+    _Alignas(16) float arr[16];
+    memcpy(arr, &a, sizeof(mat4));
+    // 0  1  8  9
+    // 2  3  10 11
+    // 12 13 4  5
+    // 14 15 6  7
 
-/// @brief Store a 4-vector as an array.
-void store_vec4(float* arr, const vec4 a) { // arr must be at least 4 wide
-    _mm_storeu_ps(arr, a);
-}
-
-/// @brief Print a 4-vector.
-void print_vec4(const vec4 a) {
-    printf("%f %f %f %f\n",
-        _mm_extractf_ps(a, 0),
-        _mm_extractf_ps(a, 1),
-        _mm_extractf_ps(a, 2),
-        _mm_extractf_ps(a, 3)
+    printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n\n",
+        arr[0], arr[1], arr[8], arr[9],
+        arr[2], arr[3], arr[10], arr[11],
+        arr[12], arr[13], arr[4], arr[5],
+        arr[14], arr[15], arr[6], arr[7]
     );
 }
 

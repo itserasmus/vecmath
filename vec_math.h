@@ -18,12 +18,11 @@
 #include "define.h"
 
 #ifdef VECM_USE_SSE
-#include "sse/vec_math_sse.h"
+    #include "sse/vec_math_sse.h"
 #elif defined(VECM_USE_AVX)
-#warning "AVX implementation not completed yet. Use `rmat4` in place of `mat4`"
-#include "avx/vec_math_avx.h"
+    #include "avx/vec_math_avx.h"
 #elif defined(VECM_USE_AVX512)
-#error "AVX512 not implemented yet. Use SSE by defining VECM_USE_SSE."
+    #error "AVX512 not implemented yet. Use SSE by defining VECM_USE_SSE."
 #endif
 
 

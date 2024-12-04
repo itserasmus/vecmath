@@ -14,6 +14,7 @@
 #include <time.h>
 #include <Windows.h>
 
+#define VECM_SUPRESS_WARNINGS
 #define VECM_USE_AVX
 #define VECM_USE_FMA
 // #define VECM_FAST_MATH
@@ -44,11 +45,22 @@ int main(int argc, char **argv) {
          2,  3,  1,  1,
         -1,  2,  2,  1,
          5, -3,  3,  7);
+
     volatile mat4 b = create_mat4(
          3,  5,  1,  1,
          7,  1, -1,  4,
          5, -1,  4,  8,
          6,  7,  2,  3);
+
+// 4 1 -2 1
+// 2 3 1 1
+// -1 2 2 1
+// 5 -3 3 7
+// 
+// 3 5 1 1
+// 7 1 -1 4
+// 5 -1 4 8
+// 6 7 2 3
 
     vec4 vord = create_vec4(0, 1, 2, 3);
     vec4 v1 = create_vec4(4, 5, 2, 8);
@@ -106,16 +118,11 @@ int main(int argc, char **argv) {
     // duration = ((double)end.tv_sec*1e9 + end.tv_nsec) - ((double)start.tv_sec*1e9 + start.tv_nsec);
     // printf("time 2  : %i ms\n", (int)(duration/1000000));
 
-
-    // print_rmat4(inv_rmat4(look_at_rmat4(
-    //     create_vec3(1, 1, 5), // camera
-    //     create_vec3(0, 0, 0), // target
-    //     create_vec3(0, 1, 0)  // up
-    // )));
+    // print_mat4(a);
     // print_vec4(rotate_vec3(create_vec3(1, 1, 5), norm_vec3(create_vec3(4, 2, 6)), 3.14159*0.25));
-    printf("%f\n", det_mat4(a));
+    // printf("%f\n", det_mat4(a));
     // print_vec4(mul_vec4_mat4(v1, a));
-    // print_mat4(trans_mat4(ord));
+    // print_mat4(mul_mat4(a, inv_mat4(a)));
 
     if(k == INFINITY) {printf("%f", k);}
     

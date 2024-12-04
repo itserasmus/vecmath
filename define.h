@@ -22,6 +22,7 @@
  * - VECM_HANDEDNESS_NAMING: Names functions based on handedness when importing both left and right handed functions
  * - VECM_LEFT_HANDED: Uses a left handed coordinate system (only affects pseudovectors)
  * - VECM_RIGHT_HANDED: Uses a right handed coordinate system (only affects pseudovectors)
+ * - VECM_SUPRESS_WARNINGS: Supresses compile-time warnings
  * - VECM_NO_FMA: Prevents usage of FMA instructions
  * - VECM_USE_AVX: Uses the AVX based VecMath implementation
  * - VECM_USE_AVX512: Uses the AVX512 based VecMath implementation (not supported yet)

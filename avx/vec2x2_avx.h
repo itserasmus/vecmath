@@ -1,3 +1,15 @@
+/**
+ * VecMath - SIMD-based Matrix and Vector Library
+ * 
+ * This file is part of the VecMath project and is licensed under the MIT License.
+ * See the LICENSE file in the root of the repository for full license details.
+ * 
+ * Copyright (c) 2024 Om Patil
+ */
+
+/**
+ * Contains all `vec2` related functions for the AVX implementation of VecMath.
+ */
 #ifndef VEC2X2_H_AVX
 #define VEC2X2_H_AVX
 #include "vec_math_avx.h"

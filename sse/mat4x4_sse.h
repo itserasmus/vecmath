@@ -170,17 +170,6 @@ pure_fn float det_mat4(const mat4 a) {
         _mm_mul_ps(_mm_movelh_ps(a.b0, a.b1), _mm_shuffle_ps(a.b0, a.b1, _MM_SHUFFLE(2, 3, 2, 3))),
         _mm_mul_ps(_mm_movelh_ps(a.b2, a.b3), _mm_shuffle_ps(a.b2, a.b3, _MM_SHUFFLE(2, 3, 2, 3)))
     );
-    printf("%f %f\n",_mm_cvtss_f32(_mm_dp_ps(dets, _mm_permute_mac(dets, _MM_SHUFFLE(0, 1, 2, 3)), 0b00110001)),_mm_cvtss_f32(_mm_dp_ps(
-        _mm_fms_mac(
-            a.b0, _mm_permute_mac(a.b1, _MM_SHUFFLE(1, 0, 2, 3)),
-            _mm_mul_ps(_mm_permute_mac(a.b0, _MM_SHUFFLE(1, 0, 3, 2)), _mm_permute_mac(a.b1, _MM_SHUFFLE(3, 2, 0, 1)))
-        ),
-        _mm_fms_mac(
-            _mm_permute_mac(a.b2, _MM_SHUFFLE(0, 1, 0, 1)), _mm_permute_mac(a.b3, _MM_SHUFFLE(2, 3, 3, 2)),
-            _mm_mul_ps(_mm_permute_mac(a.b2, _MM_SHUFFLE(2, 3, 2, 3)), _mm_permute_mac(a.b3, _MM_SHUFFLE(0, 1, 1, 0)))
-        ),
-        0b11110001
-    )));
     return _mm_cvtss_f32(_mm_dp_ps(dets, _mm_permute_mac(dets, _MM_SHUFFLE(0, 1, 2, 3)), 0b00110001)) +
         _mm_cvtss_f32(_mm_dp_ps(
         _mm_fms_mac(

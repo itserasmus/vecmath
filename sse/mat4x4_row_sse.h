@@ -519,7 +519,7 @@ void store_vec4(float *arr, const vec4 a) { // arr must be at least 4 wide
 void print_vec4(const vec4 a) {
     _Alignas(16) float a_arr[4];
     _mm_store_ps(a_arr, a);
-    printf("%f %f %f %f\n\n", a_arr[0], a_arr[1], a_arr[2], a_arr[3]);
+    printf("%f %f %f %f\n", a_arr[0], a_arr[1], a_arr[2], a_arr[3]);
 }
 
 

@@ -188,12 +188,11 @@ pure_fn rmat4 reflect_rmat4(const vec3 n) {
         _mm_permute_mac(n, _MM_SHUFFLE(0, 2, 2, 1)))
     ); // yy zz yz 0
     prod = _mm_blend_ps(_mm_add_ps(prod, prod), _mm_setzero_ps(), 0b1000);
-    print_vec4(prod);
     
     ret.m3 = _mm_shuffle_ps(prod, ret.m0, _MM_SHUFFLE(3, 1, 2, 0)); // yy yz yx 0
     ret.m1 = _mm_permute_mac(ret.m3, _MM_SHUFFLE(3, 1, 0, 2));
     ret.m3 = _mm_shuffle_ps(prod, ret.m0, _MM_SHUFFLE(3, 2, 2, 1)); // zz zy zx 0
-    ret.m2 = _mm_permute_mac(ret.m3, _MM_SHUFFLE(3, 1, 2, 0));
+    ret.m2 = _mm_permute_mac(ret.m3, _MM_SHUFFLE(3, 0, 1, 2));
     ret.m3 = _mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f);
     return ret;
 }

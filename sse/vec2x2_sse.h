@@ -59,8 +59,7 @@ pure_fn float dot_vec2(const vec2 a, const vec2 b) {
 
 /// @brief Normalizes a 2-vector.
 pure_fn vec2 norm_vec2(const vec2 a) {
-    __m128 inv_len = _mm_rsqrt_mac(_mm_dp_ps(a, a, 0b00110011));
-    return _mm_mul_ps(a, inv_len);
+    return _mm_mul_ps(a, _mm_rsqrt_mac(_mm_dp_ps(a, a, 0b00110011)));
 }
 
 /// @brief Computes the length of a 2-vector.

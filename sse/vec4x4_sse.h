@@ -59,8 +59,7 @@ pure_fn float dot_vec4(const vec4 a, const vec4 b) {
 
 /// @brief Normalizes a 4-vector.
 pure_fn vec4 norm_vec4(const vec4 a) {
-    float len = sqrt(_mm_cvtss_f32(_mm_dp_ps(a, a, 0b11110001)));
-    return _mm_div_mac(a, _mm_set_ps1(len));
+    return _mm_mul_ps(a, _mm_rsqrt_mac(_mm_dp_ps(a, a, 0b11111111)));
 }
 
 /// @brief Computes the length of a 4-vector.

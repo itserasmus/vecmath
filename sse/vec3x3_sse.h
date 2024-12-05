@@ -99,8 +99,7 @@ pure_fn vec3 cross_vec3(const vec3 a, const vec3 b)
 
 /// @brief Normalizes a 3-vector.
 pure_fn vec3 norm_vec3(const vec3 a) {
-    __m128 inv_len = _mm_rsqrt_mac(_mm_dp_ps(a, a, 0b01110001));
-    return _mm_mul_ps(a, inv_len);
+    return _mm_mul_ps(a, _mm_rsqrt_mac(_mm_dp_ps(a, a, 0b01110111)));
 }
 
 /// @brief Computes the length of a 3-vector.

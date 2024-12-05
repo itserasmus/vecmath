@@ -37,6 +37,7 @@
 #include "mat4x4_sse.h"
 #include "mat4x4_row_sse.h"
 
+#include "mat4x4_sse_ext.h"
 #include "mat4x4_row_sse_ext.h"
 
 #endif

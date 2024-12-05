@@ -15,7 +15,7 @@
 #include <Windows.h>
 
 #define VECM_SUPRESS_WARNINGS
-#define VECM_USE_AVX
+#define VECM_USE_SSE
 #define VECM_USE_FMA
 // #define VECM_FAST_MATH
 #include "vec_math.h"
@@ -122,7 +122,8 @@ int main(int argc, char **argv) {
     // print_vec4(rotate_vec3(create_vec3(1, 1, 5), norm_vec3(create_vec3(4, 2, 6)), 3.14159*0.25));
     // printf("%f\n", det_mat4(a));
     // print_vec4(mul_vec4_mat4(v1, a));
-    // print_mat4(mul_mat4(a, inv_mat4(a)));
+    print_rmat4(affine_rmat4(v1, v2, 0.5f, 0.6f, 0.9f, 3.0f));
+    print_mat4(affine_mat4(v1, v2, 0.5f, 0.6f, 0.9f, 3.0f));
 
     if(k == INFINITY) {printf("%f", k);}
     

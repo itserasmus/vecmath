@@ -354,7 +354,7 @@ pure_fn rmat4 affine_rmat4(const __m128 translation, const __m128 axis, const fl
 
     ret.m2 = _mm_blend_ps(
         _mm_mul_ps(_mm_shuffle_ps(tmp0, cos_vec, _MM_SHUFFLE(3, 2, 0, 1)), _mm_set_ps1(sc_z)),    // 1- 0+ c2 0
-        _mm_permute_mac(translation, _MM_SHUFFLE(3, 3, 3, 3)),
+        _mm_permute_mac(translation, _MM_SHUFFLE(2, 2, 2, 2)),
         0b1000
     );
     
@@ -432,7 +432,7 @@ pure_fn rmat4 affine_rmat4(const __m128 translation, const __m128 axis, const fl
 
     ret.m2 = _mm_blend_ps(
         _mm_mul_ps(_mm_shuffle_ps(tmp0, cos_vec, _MM_SHUFFLE(3, 2, 0, 1)), _mm_set_ps1(sc_z)),    // 1- 0+ c2 0
-        _mm_permute_mac(translation, _MM_SHUFFLE(3, 3, 3, 3)),
+        _mm_permute_mac(translation, _MM_SHUFFLE(2, 2, 2, 2)),
         0b1000
     );
     

@@ -8,12 +8,12 @@
  */
 
 /**
- * Main file for AVX implementation of VecMath. Recommended to import through
+ * Main file for AVX512 implementation of VecMath. Recommended to import through
  * `vec_math.h` or import `define.h` before this file.
  */
 
-#ifndef VEC_MATH_H_AVX
-#define VEC_MATH_H_AVX
+#ifndef VEC_MATH_H_AVX512
+#define VEC_MATH_H_AVX512
 
 #ifdef __cplusplus
 #include <cstdio>
@@ -23,24 +23,16 @@
 #include <immintrin.h>
 #include <string.h>
 
-#include "macros_avx.h"
+#include "macros_avx512.h"
 
-#include "common_avx.h"
-#include "constructors_avx.h"
+#include "common_avx512.h"
+#include "constructors_avx512.h"
 
-#include "vec2x2_avx.h"
-#include "vec3x3_avx.h"
-#include "vec4x4_avx.h"
+#include "vec2x2_avx512.h"
+#include "vec3x3_avx512.h"
+#include "vec4x4_avx512.h"
 
-#include "mat2x2_avx.h"
-#include "mat3x3_avx.h"
-#include "mat4x4_avx.h"
-#include "mat4x4_row_avx.h"
-
-#include "mat4x4_row_avx_ext.h"
-
-
-
+#include "mat2x2_avx512.h"
 
 
 #endif

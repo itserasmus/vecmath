@@ -87,11 +87,11 @@ pure_fn vec3 cross_vec3(const vec3 a, const vec3 b)
 #endif
 {
     return _mm_fms_mac(
-        _mm_permute_mac(a, _MM_SHUFFLE(0, 2, 1, 3)),
-        _mm_permute_mac(b, _MM_SHUFFLE(0, 1, 3, 2)),
+        _mm_permute_mac(a, _MM_SHUFFLE(0, 1, 0, 2)),
+        _mm_permute_mac(b, _MM_SHUFFLE(0, 0, 2, 1)),
         _mm_mul_ps(
-            _mm_permute_mac(a, _MM_SHUFFLE(0, 1, 3, 2)),
-            _mm_permute_mac(b, _MM_SHUFFLE(0, 2, 1, 3))
+            _mm_permute_mac(a, _MM_SHUFFLE(0, 0, 2, 1)),
+            _mm_permute_mac(b, _MM_SHUFFLE(0, 1, 0, 2))
         )
     );
 }

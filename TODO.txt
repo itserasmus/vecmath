@@ -1,5 +1,30 @@
-- avx mat4
-- avx512 everthing
+Immediate TODO:
+- avx512 basic linear algebra
 - matmxn
-- avx,avx512 mat4,rmat4 and sse mat4 graphics extensions 
-- test `avx::outer_vec4`
+- avx graphics extensions
+- avx512 graphics extensions 
+
+Vecn Basic Functions:
+- Add, Sub, Scalar Mul, Pointwise Mul, Scalar Div, Pointwise Div,
+- Dot, Noramlize, Length
+- Outer Product
+
+Matmxn Basic Functions:
+- Add, Sub, Scalar Mul, Trans
+- Pre Vec Mul, Post Vec Mul, Mat Mul
+- Det, Cftr, Adj, Inv, Pow
+
+Advanced Linear Algebra Functions:
+- Diagonalization
+- Jordan Normal Form
+- LU Decomposition
+- QR Decomposition
+- SVD
+- Polar Decomposition
+- Pseudo-Inverse
+- Analytic Functions
+    - Exponential
+    - Logarithm
+    - Trig
+    - H-Trig
+    - General Analytic Function?

@@ -13,6 +13,8 @@
  */
 
 #include <immintrin.h>
+#ifndef MACROS_H_SSE
+#define MACROS_H_SSE
 #ifdef __cplusplus
 namespace vecm {
 #ifdef VECM_DOUBLE_NAMESPACE
@@ -92,5 +94,6 @@ extern "C" {
 }
 #ifdef VECM_DOUBLE_NAMESPACE
 }
+#endif
 #endif
 #endif

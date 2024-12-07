@@ -8,15 +8,15 @@
  */
 
 /**
- * Contains all `vec3` related functions for the AVX implementation of VecMath.
+ * Contains all `vec3` related functions for the AVX512 implementation of VecMath.
  */
-#ifndef VEC3X3_H_AVX
-#define VEC3X3_H_AVX
-#include "vec_math_avx.h"
+#ifndef VEC3X3_H_AVX512
+#define VEC3X3_H_AVX512
+#include "vec_math_avx512.h"
 #ifdef __cplusplus
 namespace vecm {
 #ifdef VECM_DOUBLE_NAMESPACE
-namespace avx {
+namespace avx512 {
 #endif
 extern "C" {
 #endif
@@ -109,13 +109,7 @@ pure_fn float len_vec3(const vec3 a) {
 
 /// @brief Computes the outer product of two 3-vectors.
 pure_fn mat3 outer_vec3(const vec3 a, const vec3 b) {
-    mat3 ret;
-    ret.m0 = _mm256_mul_ps(
-        _mm256_set_m128(_mm_permute_mac(a, _MM_SHUFFLE(0, 0, 0, 0)), _mm_permute_mac(a, _MM_SHUFFLE(1, 1, 1, 1))),
-        _mm256_set_m128(b, b)
-    );
-    ret.m1 = _mm_mul_ps(_mm_permute_ps(a, _MM_SHUFFLE(3, 3, 3, 3)), b);
-    return ret;
+    
 }
 
 

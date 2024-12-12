@@ -109,8 +109,28 @@ pure_fn float len_vec3(const vec3 a) {
 
 /// @brief Computes the outer product of two 3-vectors.
 pure_fn mat3 outer_vec3(const vec3 a, const vec3 b) {
-    
+    return _mm512_mul_ps(
+        _mm512_broadcast_f32x4(b),
+        _mm512_insertf32x4(_mm512_insertf32x4(_mm512_castps128_ps512(
+            _mm_permute_ps(a, _MM_SHUFFLE(0, 0, 0, 0))),
+            _mm_permute_ps(a, _MM_SHUFFLE(1, 1, 1, 1)), 1),
+            _mm_permute_ps(a, _MM_SHUFFLE(2, 2, 2, 2)), 2
+        )
+    );
 }
+
+
+
+void print_mat3(const mat3 a) {
+    _Alignas(16) float arr[16];
+    _mm512_store_ps(&arr, a);
+    printf("%f %f %f\n%f %f %f\n%f %f %f\n\n",
+        arr[0], arr[1], arr[2],
+        arr[4], arr[5], arr[6],
+        arr[8], arr[9], arr[10]
+    );
+}
+
 
 
 

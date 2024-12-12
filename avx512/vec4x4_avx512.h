@@ -70,43 +70,33 @@ pure_fn float len_vec4(const vec4 a) {
 
 /// @brief Computes the outer product of two 4-vectors as a `rmat4`
 pure_fn rmat4 outer_rvec4(const vec4 a, const vec4 b) {
-    rmat4 ret;
-    ret.m0 = _mm256_mul_ps(
-        _mm256_set_m128(b, b),
-        _mm256_set_m128(
-            _mm_permute_mac(a, _MM_SHUFFLE(1, 1, 1, 1)),
-            _mm_permute_mac(a, _MM_SHUFFLE(0, 0, 0, 0))
+    return _mm512_mul_ps(
+        _mm512_broadcast_f32x4(b),
+        _mm512_insertf32x4(_mm512_insertf32x4(_mm512_insertf32x4(_mm512_castps128_ps512(
+            _mm_permute_ps(a, _MM_SHUFFLE(0, 0, 0, 0))),
+            _mm_permute_ps(a, _MM_SHUFFLE(1, 1, 1, 1)), 1),
+            _mm_permute_ps(a, _MM_SHUFFLE(2, 2, 2, 2)), 2),
+            _mm_permute_ps(a, _MM_SHUFFLE(3, 3, 3, 3)), 3
         )
     );
-    ret.m1 = _mm256_mul_ps(
-        _mm256_set_m128(b, b),
-        _mm256_set_m128(
-            _mm_permute_mac(a, _MM_SHUFFLE(3, 3, 3, 3)),
-            _mm_permute_mac(a, _MM_SHUFFLE(2, 2, 2, 2))
-        )
-    );
-    return ret;
 }
 
 /// @brief Computes the outer product of two 4-vectors as a `mat4`
 pure_fn mat4 outer_vec4(const vec4 a, const vec4 b) {
-    mat4 ret;
-    ret.b0 = _mm256_mul_ps(
-        _mm256_set_m128(b, b),
-        _mm256_set_m128(
-            _mm_permute_mac(a, _MM_SHUFFLE(3, 3, 2, 2)),
-            _mm_permute_mac(a, _MM_SHUFFLE(1, 1, 0, 0))
+    return _mm512_mul_ps(
+        _mm512_insertf32x4(_mm512_insertf32x4(_mm512_insertf32x4(_mm512_castps128_ps512(
+            _mm_permute_ps(b, _MM_SHUFFLE(1, 0, 1, 0))),
+            _mm_permute_ps(b, _MM_SHUFFLE(3, 2, 3, 2)), 1),
+            _mm_permute_ps(b, _MM_SHUFFLE(1, 0, 1, 0)), 2),
+            _mm_permute_ps(b, _MM_SHUFFLE(3, 2, 3, 2)), 3
+        ),
+        _mm512_insertf32x4(_mm512_insertf32x4(_mm512_insertf32x4(_mm512_castps128_ps512(
+            _mm_permute_ps(a, _MM_SHUFFLE(1, 1, 0, 0))),
+            _mm_permute_ps(a, _MM_SHUFFLE(1, 1, 0, 0)), 1),
+            _mm_permute_ps(a, _MM_SHUFFLE(3, 3, 2, 2)), 2),
+            _mm_permute_ps(a, _MM_SHUFFLE(3, 3, 2, 2)), 3
         )
     );
-    ret.b1 = _mm256_mul_ps(
-        _mm256_set_m128(b, b),
-        _mm256_set_m128(
-            _mm_permute_mac(a, _MM_SHUFFLE(2, 2, 3, 3)),
-            _mm_permute_mac(a, _MM_SHUFFLE(0, 0, 1, 1))
-        )
-    );
-    
-    return ret;
 }
 
 

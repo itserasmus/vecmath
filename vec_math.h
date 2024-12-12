@@ -22,7 +22,7 @@
 #elif defined(VECM_USE_AVX)
     #include "avx/vec_math_avx.h"
 #elif defined(VECM_USE_AVX512)
-    #error "AVX512 not implemented yet. Use SSE by defining VECM_USE_SSE."
+    #include "avx512/vec_math_avx512.h"
 #endif
 
 

@@ -34,6 +34,7 @@ int main(int argc, char **argv) {
     //     7, 1, -1, 4,
     //     5, -1, 4, 8,
     //     6, 7, 2, 3);
+
     mat4 ord = create_mat4(
         0,  1,  2,  3,
         4,  5,  6,  7,
@@ -46,11 +47,11 @@ int main(int argc, char **argv) {
         -1,  2,  2,  1,
          5, -3,  3,  7);
 
-    volatile mat4 b = create_mat4(
-         3,  5,  1,  1,
-         7,  1, -1,  4,
-         5, -1,  4,  8,
-         6,  7,  2,  3);
+    // volatile mat4 b = create_mat4(
+    //      3,  5,  1,  1,
+    //      7,  1, -1,  4,
+    //      5, -1,  4,  8,
+    //      6,  7,  2,  3);
 
 // 4 1 -2 1
 // 2 3 1 1
@@ -122,7 +123,8 @@ int main(int argc, char **argv) {
     // print_vec4(rotate_vec3(create_vec3(1, 1, 5), norm_vec3(create_vec3(4, 2, 6)), 3.14159*0.25));
     // printf("%f\n", det_mat4(a));
     // print_vec4(mul_vec4_mat4(v1, a));
-    print_rmat4(affine_rmat4(vord, v1, 0.5f, 0.2f, 2.03f, 1.2f));
+    // print_rmat4(affine_rmat4(vord, v1, 0.5f, 0.2f, 2.03f, 1.2f));
+    // print_mat3(outer_vec3(v1, v2));
 
     if(k == INFINITY) {printf("%f", k);}
     

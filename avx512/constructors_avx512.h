@@ -56,6 +56,7 @@ pure_fn mat2 create_mat2(
     return _mm_set_ps(w, z, y, x);
 }
 
+
 /// @brief Creates a 3x3 row-major matrix from 2 6-element vectors
 /// @details This function creates a 3x3 matrix stored as 4 3-element
 /// vectors (rows). The vectors (rows) are represented by the first
@@ -64,7 +65,14 @@ pure_fn mat2 create_mat2(
 /// VecMath and other functions without warning.
 pure_fn mat3 create_mat3v256(
     const __m256 a, const __m256 b) {
+    #ifdef __AVX512DQ__
     return _mm512_insertf32x8(_mm512_castps256_ps512(a), b, 1);
+    #else
+    return _mm512_insertf32x4(
+        _mm512_insertf32x4(_mm512_castps256_ps512(a), _mm256_castps256_ps128(b), 2),
+        _mm256_extractf128_ps(b, 1), 3
+    );
+    #endif
 }
 
 /// @brief Creates a 3x3 row-major matrix from three 3-element vectors.
@@ -104,7 +112,15 @@ pure_fn mat3 create_mat3(
 /// shared with other libraries/graphics.
 pure_fn rmat4 create_rmat4v256(
     const __m256 a, const __m256 b) {
+    #ifdef __AVX512DQ__
     return _mm512_insertf32x8(_mm512_castps256_ps512(a), b, 1);
+    #else
+    return _mm512_insertf32x4(
+        _mm512_insertf32x4(_mm512_castps256_ps512(a),
+            _mm256_castps256_ps128(b), 2),
+        _mm256_extractf128_ps(b, 1), 3
+    );
+    #endif
 }
 
 /// @brief Creates a 4x4 row-major matix from 4 4-element vectors.

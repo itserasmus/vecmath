@@ -42,7 +42,7 @@
 #endif
 
 #if !defined(VECM_USE_SSE) && !defined(VECM_USE_AVX) && !defined(VECM_USE_AVX512)
-    #ifdef __AVX512__
+    #ifdef __AVX512F__
     #define VECM_USE_AVX512
     #elif defined(__AVX__)
     #define VECM_USE_AVX

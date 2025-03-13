@@ -75,7 +75,14 @@ extern "C" {
 #endif
 
 
-#define pure_fn __attribute__((pure))
+#ifdef VECM_ASSERT_DIMENSIONS_COMPATIBILITY
+    #define VECM_DIM_ASSERT(cond, err) \
+        if(!(cond)) {fprintf(stderr, err);}
+#else
+    #define VECM_DIM_ASSERT(cond, err)
+#endif
+
+
 #ifndef __cplusplus
     #define reinterpret_int_float(x) ((union { int i; float f; }){ .i = (x) }).f
     #define _mm_extractf_ps(a, x) ((union { int i; float f; }){ .i = _mm_extract_ps(a, x) }).f
@@ -87,6 +94,27 @@ extern "C" {
         int tmp = _mm_extract_ps(a, x);
         return *reinterpret_cast<float*>(&tmp);
     }
+#endif
+
+#if defined(__GNUC__) || defined(__clang__) ||  defined(__ARMCC_VERSION) ||  defined(__EMSCRIPTEN__)
+    #define pure_fn __attribute__((pure))
+    #define VECM_ALIGN_16 __attribute__((aligned(16)))
+    #define VECM_ALIGN_32 __attribute__((aligned(32)))
+    #define VECM_ALIGN_64 __attribute__((aligned(64)))
+#elif defined(_MSC_VER) ||  defined(__INTEL_COMPILER) // both use same syntax
+    #define pure_fn __declspec(pure)
+    #define VECM_ALIGN_16 __declspec(align(16))
+    #define VECM_ALIGN_32 __declspec(align(32))
+    #define VECM_ALIGN_64 __declspec(align(64))
+#else
+    #if !defined(VECM_SUPRESS_WARNINGS) && \
+        (!defined(VECM_ALIGN_16) || !defined(VECM_ALIGN_32) || !defined(VECM_ALIGN_64))
+        #error "Unsupported compiler or missing alignment support. Define VECM_ALIGN_XX manually."
+        #define pure_fn
+        #define VECM_ALIGN_16
+        #define VECM_ALIGN_32
+        #define VECM_ALIGN_64
+    #endif
 #endif
 
 #ifdef __cplusplus

@@ -23,16 +23,6 @@ namespace avx512 {
 extern "C" {
 #endif
 
-#if !defined(__GNUC__) && !defined(__clang__)
-#define __attribute__(x)
-#endif
-#if !defined(__MSC_VER) && !defined(__clang__)
-#define __declspec(x)
-#endif
-#if defined(__MSC_VER)
-#define __attribute__(x) __declspec(x)
-#endif
-
 
 /// @brief A 2 element float vector
 typedef __m128 vec2;

@@ -160,40 +160,41 @@ pure_fn rmat4 mul_rmat4(const rmat4 a, const rmat4 b) {
 /// @brief Compute the cofactor of a 4x4 matrix.
 pure_fn rmat4 cofactor_rmat4(const rmat4 a) {
     rmat4 ret;
-    // and here we go again, computing determinants vertically this time...
-    __m512 dets = _mm512_fms_mac(
+    // pain pain pain
+    __m512 dets = _mm512_fmsub_ps(
         _mm512_permutexvar_ps(_mm512_setr_epi32(
-            6, 2, 6, 2,
-            10, 11, 2, 3,
-            4, 0, 4, 0,
-            8, 9, 0, 1
+            9, 8, 8, 9,
+            11, 10, 9, 8,
+            1, 0, 0, 1,
+            3, 2, 1, 0
         ), a),
         _mm512_permutexvar_ps(_mm512_setr_epi32(
-            11, 15, 15, 11,
-            15, 14, 7, 6,
-            9, 13, 13, 9,
-            13, 12, 5, 4
+            15, 14, 15, 14,
+            14, 15, 12, 13,
+            7, 6, 7, 6,
+            6, 7, 4, 5
         ), a),
         _mm512_mul_ps(
             _mm512_permutexvar_ps(_mm512_setr_epi32(
-                7, 3, 7, 3,
-                11, 10, 3, 2,
-                5, 1, 5, 1,
-                9, 8, 1, 0
+                11, 10, 11, 10,
+                10, 11, 8, 9,
+                3, 2, 3, 2,
+                2, 3, 0, 1
             ), a),
             _mm512_permutexvar_ps(_mm512_setr_epi32(
-                10, 14, 14, 10,
-                14, 15, 6, 7,
-                8, 12, 12, 8,
-                12, 13, 4, 5
+                13, 12, 12, 13,
+                15, 14, 13, 12,
+                5, 4, 4, 5,
+                7, 6, 5, 4
             ), a)
         )
     );
+    // cuz somebody forgot _mm512_permute4f128_ps
     __m512 a_rowswap = _mm512_permutexvar_ps(_mm512_setr_epi32(
-        13, 9, 1, 5,
-        12, 8, 0, 4,
-        15, 11, 3, 7,
-        14, 10, 2, 6
+        7, 6, 4, 5,
+        3, 2, 0, 1,
+        15, 14, 12, 13,
+        11, 10, 8, 9
     ), a);
     ret = _mm512_permutexvar_ps(_mm512_setr_epi32( // dets_0022 (reuse variable)
         0, 1, 2, 3,
@@ -203,26 +204,28 @@ pure_fn rmat4 cofactor_rmat4(const rmat4 a) {
     ), dets);
 
 
-    ret = _mm512_add_ps(
-        _mm512_mul_ps(
-            a_rowswap, // 3 2 0 1
-            ret
-        ),
-        _mm512_sub_ps(
-            _mm512_mul_ps(
-                _mm512_permute_ps(a_rowswap, _MM_SHUFFLE(1, 0, 2, 3)),
-                _mm512_permutexvar_ps(_mm512_setr_epi32(
-                    4, 5, 6, 7,
-                    4, 5, 6, 7,
-                    12, 13, 14, 15,
-                    12, 13, 14, 15
-                ), dets)
-            ),
+    ret = _mm512_fmsub_ps(
+        a_rowswap,
+        _mm512_permute_ps(ret, _MM_SHUFFLE(1, 0, 2, 3)),
+        _mm512_fmadd_ps(
+            _mm512_permute_ps(a_rowswap, _MM_SHUFFLE(1, 0, 2, 3)),
+            _mm512_permutexvar_ps(_mm512_setr_epi32(
+                4, 5, 6, 7,
+                4, 5, 6, 7,
+                12, 13, 14, 15,
+                12, 13, 14, 15
+            ), dets),
             _mm512_mul_ps(
                 _mm512_permute_ps(a_rowswap, _MM_SHUFFLE(2, 3, 0, 1)),
-                _mm512_permute_ps(ret, _MM_SHUFFLE(0, 1, 3, 2))
+                ret
             )
         )
+    );
+    dets = _mm512_setr_ps( // used as a XOR mask for negation
+        0.0f,0.0f,0.0f,0.0f,
+        -0.0f,-0.0f,-0.0f,-0.0f,
+        0.0f,0.0f,0.0f,0.0f,
+        -0.0f,-0.0f,-0.0f,-0.0f
     );
     
     // cast to and from __m512i cuz Intel

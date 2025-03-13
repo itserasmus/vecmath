@@ -14,6 +14,7 @@
 #ifndef VEC_MATH_COMMON_H_AVX
 #define VEC_MATH_COMMON_H_AVX
 #include "vec_math_avx.h"
+#include <stdalign.h>
 
 #ifdef __cplusplus
 namespace vecm {
@@ -21,16 +22,6 @@ namespace vecm {
 namespace avx {
 #endif
 extern "C" {
-#endif
-
-#if !defined(__GNUC__) && !defined(__clang__)
-#define __attribute__(x)
-#endif
-#if !defined(__MSC_VER) && !defined(__clang__)
-#define __declspec(x)
-#endif
-#if defined(__MSC_VER)
-#define __attribute__(x) __declspec(x)
 #endif
 
 
@@ -52,12 +43,12 @@ typedef __m128 mat2;
 typedef struct mat3 {
     __m256 m0;
     __m128 m1;
-} __attribute__((aligned(64))) mat3;
+} VECM_ALIGN_64 mat3;
 /// @brief A row major 4x4 float matrix
 typedef struct rmat4 {
     __m256 m0;
     __m256 m1;
-} __attribute__((aligned(64))) rmat4;
+} VECM_ALIGN_64 rmat4;
 
 /// @brief A 4x4 float matrix composed of 2x2 blocks. For a row
 /// major matrix, use `rmat4` instead.
@@ -73,7 +64,7 @@ typedef struct rmat4 {
 typedef struct mat4 {
     __m256 b0;
     __m256 b1;
-} __attribute__((aligned(64))) mat4;
+} VECM_ALIGN_64 mat4;
 
 
 #ifdef __cplusplus

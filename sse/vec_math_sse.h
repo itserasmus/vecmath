@@ -19,6 +19,7 @@
 #include <cstdio>
 #endif
 
+#include <stdint.h>
 #include <math.h>
 #include <immintrin.h>
 #include <string.h>
@@ -28,9 +29,10 @@
 #include "common_sse.h"
 #include "constructors_sse.h"
 
-#include "vec2x2_sse.h"
-#include "vec3x3_sse.h"
-#include "vec4x4_sse.h"
+#include "vec2_sse.h"
+#include "vec3_sse.h"
+#include "vec4_sse.h"
+#include "vec_raw_sse.h"
 
 #include "mat2x2_sse.h"
 #include "mat3x3_sse.h"

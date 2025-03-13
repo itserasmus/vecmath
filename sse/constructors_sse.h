@@ -82,6 +82,30 @@ pure_fn vec4 create_vec4(
     return _mm_set_ps(w, z, y, x);
 }
 
+/// @brief Allocates an n-component vector from a size. Remember to
+/// deallocate it with `unalive_vecRaw`
+/// @param n The size of the vector.
+pure_fn vecRaw create_vecRaw_size(size_t n) {
+    vecRaw v = (vecRaw)_mm_malloc(sizeof(__m128) * ((n+3)/4), 64); // (n+3)/4 is to add padding (round up)
+    return v;
+}
+
+/// @brief Allocates an n-component vector from a size and data in an
+/// array. Remember to deallocate it with `unalive_vecRaw`
+/// @param n The size of the vector.
+/// @param data The data to set the vector to.
+pure_fn vecRaw create_vecRaw_data(size_t n, float* data) {
+    vecRaw v = (vecRaw)_mm_malloc(sizeof(__m128)*((n+3)/4), 64); // (n+3)/4 is to add padding (round up)
+    memcpy(v, data, sizeof(__m128)*((n+3)/4));
+    return v;
+}
+
+/// @brief Dellocates an n-component vector from a size
+/// @param v the vector
+void unalive_vecRaw(vecRaw v) {
+    _mm_free(v);
+}
+
 /// @brief Creates a 2x2 row-major matrix from 4 float components.
 /// @details This function creates a 2x2 matrix stored as a single
 /// `__m128`. The first two elements are the first row of the matrix,
@@ -191,6 +215,20 @@ pure_fn mat4 create_mat4(
     mat.b2 = _mm_set_ps(y, x, q, p);
     mat.b3 = _mm_set_ps(w, z, s, r);
     return mat;
+}
+
+/// @brief Allocates a mxn matrix from its dimensions. Remember to
+/// deallocate it with `unalive_matRaw`
+/// @param n The size of the matrix.
+pure_fn matRaw create_matRaw_size(size_t m, size_t n) {
+    matRaw mat = (matRaw)_mm_malloc(sizeof(__m128) * ((m+3)/4) * ((n+3)/4), 64); // (n+3)/4 is to add padding (round up)
+    return mat;
+}
+
+/// @brief Dellocates a mxn matrix from the pointer
+/// @param m the matrix
+void unalive_matRaw(matRaw m) {
+    _mm_free(m);
 }
 
 

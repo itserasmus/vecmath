@@ -28,9 +28,9 @@
 #include "common_avx.h"
 #include "constructors_avx.h"
 
-#include "vec2x2_avx.h"
-#include "vec3x3_avx.h"
-#include "vec4x4_avx.h"
+#include "vec2_avx.h"
+#include "vec3_avx.h"
+#include "vec4_avx.h"
 
 #include "mat2x2_avx.h"
 #include "mat3x3_avx.h"

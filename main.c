@@ -15,7 +15,7 @@
 #include <Windows.h>
 
 #define VECM_SUPRESS_WARNINGS
-#define VECM_USE_AVX
+#define VECM_USE_SSE
 #define VECM_USE_FMA
 // #define VECM_FAST_MATH
 #include "vec_math.h"
@@ -34,38 +34,24 @@ int main(int argc, char **argv) {
     //     7, 1, -1, 4,
     //     5, -1, 4, 8,
     //     6, 7, 2, 3);
-
-    mat4 ord = create_mat4(
-        0,  1,  2,  3,
-        4,  5,  6,  7,
-        8,  9,  10, 11,
-        12, 13, 14, 15);
-
-    mat4 a = create_mat4(
-         4,  1, -2,  1,
-         2,  3,  1,  1,
-        -1,  2,  2,  1,
-         5, -3,  3,  7);
-
+    // mat4 ord = create_mat4(
+    //     0,  1,  2,  3,
+    //     4,  5,  6,  7,
+    //     8,  9,  10, 11,
+    //     12, 13, 14, 15);
+    // mat4 a = create_mat4(
+    //      4,  1, -2,  1,
+    //      2,  3,  1,  1,
+    //     -1,  2,  2,  1,
+    //      5, -3,  3,  7);
     // volatile mat4 b = create_mat4(
     //      3,  5,  1,  1,
     //      7,  1, -1,  4,
     //      5, -1,  4,  8,
     //      6,  7,  2,  3);
-
-// 4 1 -2 1
-// 2 3 1 1
-// -1 2 2 1
-// 5 -3 3 7
-// 
-// 3 5 1 1
-// 7 1 -1 4
-// 5 -1 4 8
-// 6 7 2 3
-
-    vec4 vord = create_vec4(0, 1, 2, 3);
-    vec4 v1 = create_vec4(4, 5, 2, 8);
-    vec4 v2 = create_vec4(7, 1, 3, 2);
+    // vec4 vord = create_vec4(0, 1, 2, 3);
+    // vec4 v1 = create_vec4(4, 5, 2, 8);
+    // vec4 v2 = create_vec4(7, 1, 3, 2);
 
     float k = 69;
 
@@ -126,7 +112,13 @@ int main(int argc, char **argv) {
     // print_rmat4(affine_rmat4(vord, v1, 0.5f, 0.2f, 2.03f, 1.2f));
     // print_mat3(outer_vec3(v1, v2));
 
-    if(k == INFINITY) {printf("%f", k);}
+    float arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    float arr2[] = {0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64};
+    vecRaw v1 = create_vecRaw_data(16, arr1);
+    vecRaw v2 = create_vecRaw_data(16, arr2);
+    print_vecRaw(add_vecRaw(v1, v2, 16), 16);
+
+    // if(k == INFINITY) {printf("%f", k);}
     
     return 0;
 }
